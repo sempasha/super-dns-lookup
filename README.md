@@ -20,7 +20,7 @@ By default threads pool has size of 4 threads, and it may be a bottleneck:
 Please, consider reeading of [Don't Block the Event Loop (or the Worker Pool)][docs-block-working-pool].
 
 💡 The idea of this library is implement [dns.lookup][docs-dns-lookup] compatible function
-which does not reply on threads pool, and it is based on [dns.resolve4][node-dns-resolve4]/[dns.resolve6][node-dns-resolve6] functions family.
+which does not reply on threads pool, and it is based on [dns.resolve4][docs-dns-resolve4]/[dns.resolve6][docs-dns-resolve6] functions family.
 It is exactly what NodeJS documentations recommends to do.
 
 Each time you make http.request, create tcp socket or event datagram socket, you may use this function as lookup option:
