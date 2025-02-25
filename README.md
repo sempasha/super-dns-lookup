@@ -83,30 +83,24 @@ There are at least three alternatives:
 * [dns-lookup-cache][package-dns-lookup-cache];
 * [cacheable-lookup][package-cacheable-lookup].
 
-In table below describes all alternatives compared to each other using legend:
-
-* ✅ Yes
-* ❎ Yes, but there are peculiarities
-* ❌ No
-
-| Feature | [better-lookup][package-better-lookup] | [dns-lookup-cache][package-dns-lookup-cache] | [cacheable-lookup][package-cacheable-lookup] |
-|:--|:--|:--|:--|
-| **[dns.lookup][docs-dns-lookup] compatible** | ✅ | ❎ [^1] | ❎ [^2] |
-| **IP recognition** | ✅ | ❌ | ❌ |
-| **[/etc/hosts][docs-etc-hosts] file** | ✅ | ❌ | ❌ |
-| **Configurable resolver** | ❌ | ❌ | ✅ |
-| **Built-in resolver without [docs-getaddrinfo][docs-getaddrinfo]** | ✅ | ✅ | ❎ [^3] |
-| **Configurable cache** | ❌ | ❌ | ❎ [^4] |
-| **Built-in cache** | ✅ | ✅ | ✅ |
-| **Cache size** | ❌ | ❌ | ❌ |
-| **Cache TTL** | ❎ [^5] | ✅ | ✅ |
-| **Cache lock** | ✅ | ❌ | ❌ |
-| **Cache lock timeout** | ❌ | ❌ | ❌ |
-| **Cache round robin** | ✅ | ✅ | ❌ |
-| **Expired cache fallback** | ❌ | ❌ | ❌ |
-| **Cache failures** | ❌ | ❌ | ✅ |
-| **Circuit breaker** | ❌ | ❌ | ❌ |
-| **Installment API** | ✅ | ❌ | ✅ |
+| Feature | ⚡ node-dns-lookup | [better-lookup][package-better-lookup] | [dns-lookup-cache][package-dns-lookup-cache] | [cacheable-lookup][package-cacheable-lookup] |
+|:--|:--|:--|:--|:--|
+| **[dns.lookup][docs-dns-lookup] compatible** | ❔ | ✅ | ❎ [^1] | ❎ [^2] |
+| **IP recognition** | ❔ | ✅ | ❌ | ❌ |
+| **[/etc/hosts][docs-etc-hosts] file** | ❔ | ✅ | ❌ | ❌ |
+| **Configurable resolver** | ❔ | ❌ | ❌ | ✅ |
+| **Built-in resolver without [docs-getaddrinfo][docs-getaddrinfo]** | ❔ | ✅ | ✅ | ❎ [^3] |
+| **Configurable cache** | ❔ | ❌ | ❌ | ❎ [^4] |
+| **Built-in cache** | ❔ | ✅ | ✅ | ✅ |
+| **Cache size** | ❔ | ❌ | ❌ | ❌ |
+| **Cache TTL** | ❔ | ❎ [^5] | ✅ | ✅ |
+| **Cache lock** | ❔ | ✅ | ❌ | ❌ |
+| **Cache lock timeout** | ❔ | ❌ | ❌ | ❌ |
+| **Cache round robin** | ❔ | ✅ | ✅ | ❌ |
+| **Expired cache fallback** | ❔ | ❌ | ❌ | ❌ |
+| **Cache failures** | ❔ | ❌ | ❌ | ✅ |
+| **Circuit breaker** | ❔ | ❌ | ❌ | ❌ |
+| **Installment API** | ❔ | ✅ | ❌ | ✅ |
 
 [^1]: [dns-lookup-cache][package-dns-lookup-cache] supports only family (number 0, 4 or 6) and all (boolean) options.
 [^2]: [cacheable-lookup][package-cacheable-lookup] supports only family (number 0, 4 or 6), all (boolean),  options and hints ([flags][docs-dns-flags]) options.
