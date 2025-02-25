@@ -1,60 +1,65 @@
-# ⚡ dns.lookup with no threads pool
+# ⚡ fast and reliable dns.lookup
 
 ## 💡 Motivation
 
-NodeJS builtin [dns][docs-dns] module has [dns.lookup][docs-dns-lookup] function to resolve domain names into ip addresses.
-It is used as default address resolution method in most NodeJS builtin network related modules:
+NodeJS built-in [dns][docs-dns] module has [dns.lookup][docs-dns-lookup] function to resolve domain names into ip addresses.
+This built-in function appears to be default address resolution method for most network related modules of NodeJS.
+It implicitly used every time:
 
-- when you make HTTP request with [http.request][docs-http-request];
+- you make HTTP(S) request with [http.request][docs-http-request];
 - or establish new connection with [Socket#connect][docs-net-socket-connect];
 - or send data over UDP with [dgram.Socket#send][docs-dgram-socket-send].
 
-While [dns.lookup][docs-dns-lookup] seems to be asynchronous and non blocking function,
-according to [implementation considerations][docs-dns-lookup-implementation] it uses synchronous
-[docs-getaddrinfo][docs-getaddrinfo] function and the latter called via threads pool.
-By default threads pool has size of 4 threads, and it may be a bottleneck:
+Function [dns.lookup][docs-dns-lookup] seems to be asynchronous and non blocking.
+But according to [implementation considerations][docs-dns-lookup-implementation],
+[dns.lookup][docs-dns-lookup] calls synchronous [getaddrinfo][docs-getaddrinfo],
+which performs via worker threads pool and defaylt pool size is 4 threads.
 
-- when your DNS server becomes slow for some reason, e.g. heavy load or an authoritative server(s) issues;
-- or threads pool occupied by tasks like asynchronous filesystem io, asynchronous zlib calls or some crypto module's methods.
+Threads pool turns in bottleneck when becomes busy by:
 
-Please, consider reeading of [Don't Block the Event Loop (or the Worker Pool)][docs-block-working-pool].
+- slow DNS queries, e.g. when a DNS server is overloaded or an authoritative server issues;
+- slow crypto, fs or zlib calls.
+
+Please, consider reading of [Don't Block the Event Loop (or the Worker Pool)][docs-block-working-pool].
 
 💡 The idea of this library is implement [dns.lookup][docs-dns-lookup] compatible function
-which does not reply on threads pool, and it is based on [dns.resolve4][docs-dns-resolve4]/[dns.resolve6][docs-dns-resolve6] functions family.
-It is exactly what NodeJS documentations recommends to do.
+which does not reply on threads pool, and it is based on [dns.resolve4][docs-dns-resolve4] and
+[dns.resolve6][docs-dns-resolve6] functions. It is exactly what NodeJS documentation recommends to do.
 
-Each time you make http.request, create tcp socket or event datagram socket, you may use this function as lookup option:
+New lookup function should be used to:
 
-```ts
-import { request } from 'node:http';
-import { lookup } from '@sempasha/dns.lookup';
+* Create new tcp connection while performing [http.request][docs-http-request]:
+  ```ts
+  import { request } from 'node:http';
+  import { lookup } from '@sempasha/dns.lookup';
 
-const req = request('https://example.com', { lookup }, (res) => {
-  /* handle response */
-});
-req.end();
-```
-
-```ts
-import { Socket } from 'node:net';
-import { lookup } from '@sempasha/dns.lookup';
-
-const socket = new Socket();
-socket.connect('example.com', { lookup }, () => {
-  socket.write('hello world');
-  socket.end();
-});
-```
-
-```ts
-import { createSocket } from 'node:udp';
-import { lookup } from '@sempasha/dns.lookup';
-
-const socket = createSocket({ lookup });
-socket.send('hello world', () => {
-  socket.close();
-});
-```
+  const req = request('https://example.com', { lookup }, (res) => {
+    /* handle response */
+  });
+  req.end();
+  ```
+* Connect tcp socket via [net.Socket#connect][docs-net-socket-connect]:
+  ```ts
+  import { Socket } from 'node:net';
+  import { lookup } from '@sempasha/dns.lookup';
+  
+  const socket = new Socket();
+  socket.connect('example.com', { lookup }, () => {
+    socket.write('hello world');
+    socket.end();
+  });
+  ```
+* Create new datagram socket via [dgram.createSocket][docs-dgram-create-socket]
+  for sending some data via [dgram.Socket#send][docs-dgram-socket-send]:
+  ```ts
+  import { createSocket } from 'node:udp';
+  import { lookup } from '@sempasha/dns.lookup';
+  
+  const socket = createSocket({ lookup });
+  socket.send('hello world', () => {
+    socket.close();
+  });
+  ```
 
 ## 📋 Features
 
@@ -111,6 +116,7 @@ There are at least three alternatives:
 <!--- links -->
 
 [docs-block-working-pool]: https://nodejs.org/en/learn/asynchronous-work/dont-block-the-event-loop#what-code-runs-on-the-worker-pool '🐢 NodeJS blog: Don\'t Block the Event Loop (or the Worker Pool)'
+[docs-dgram-create-socket]: https://nodejs.org/api/dgram.html#dgramcreatesocketoptions-callback '🐢 NodeJS dgram.createSocket'
 [docs-dgram-socket-send]: https://nodejs.org/api/dgram.html#socketsendmsg-offset-length-port-address-callback '🐢 NodeJS dgram.Socket#send'
 [docs-dns]: https://nodejs.org/api/dns.html '🐢 NodeJS dns module'
 [docs-dns-flags]: (https://nodejs.org/api/dns.html#supported-getaddrinfo-flags) '🐢 NodeJS getaddrinfo flags'
