@@ -69,6 +69,7 @@ New lookup function should be used to:
 * **Configurable resolver** - ability to set resolver service with interface like [resolve4][docs-dns-resolve4]/[resolve6][docs-dns-resolve6];
 * **Built-in resolver without [docs-getaddrinfo][docs-getaddrinfo]** - ability to use builtin resolver which do not relay on [dns.lookup][docs-dns-lookup] and [docs-getaddrinfo][docs-getaddrinfo];
 * **Configurable cache** - ability to provide cache service with interface like set, get, list and delete;
+* **Persistent cache** - ability to export cache into storage (file or service);
 * **Built-in cache** - ability to use built-in cache, usually in memory cache;
 * **Cache size** - ability to limit cache size. May require cache provider to support listing with paging;
 * **Cache TTL** - ability to set TTL on cache records, based on A/AAAA records TTL. May require cache provider to support expiration method or ttl option of set method;
@@ -78,7 +79,8 @@ New lookup function should be used to:
 * **Expired cache fallback** - ability to use expired cache as fallback when query ends up with error;
 * **Cache failures** - ability to avoid query flood by caching `ENOTFOUND` and `ENODATA` response for some time;
 * **Circuit breaker** - ability to avoid query flood by limiting communication with resolver for some time after `SERVFAIL` and `REFUSED` errors  or query timeout. May be based on caching failed query result for some time;
-* **Installment API** - ability to install lookup function on [HTTP Agent](https://nodejs.org/api/http.html#class-httpagent) or even more.
+* **Installment API** - ability to install lookup function on [HTTP Agent](https://nodejs.org/api/http.html#class-httpagent) or even more;
+**Exports CommonJS, ESM, TypeScript** - ability to use CommonJS and ESM exports of package or TypeScript declarations.
 
 ## 📦 Alternatives
 
@@ -88,30 +90,40 @@ There are at least three alternatives:
 * [dns-lookup-cache][package-dns-lookup-cache];
 * [cacheable-lookup][package-cacheable-lookup].
 
-| Feature | ⚡ node-dns-lookup | [better-lookup][package-better-lookup] | [dns-lookup-cache][package-dns-lookup-cache] | [cacheable-lookup][package-cacheable-lookup] |
+| Feature | ⚡ node-dns-lookup | [better-lookup][package-better-lookup] | [cacheable-lookup][package-cacheable-lookup] | [dns-lookup-cache][package-dns-lookup-cache] |
 |:--|:--|:--|:--|:--|
-| **[dns.lookup][docs-dns-lookup] compatible** | ❔ | ✅ | ❎ [^1] | ❎ [^2] |
-| **IP recognition** | ❔ | ✅ | ❌ | ❌ |
-| **[/etc/hosts][docs-etc-hosts] file** | ❔ | ✅ | ❌ | ❌ |
-| **Configurable resolver** | ❔ | ❌ | ❌ | ✅ |
-| **Built-in resolver without [docs-getaddrinfo][docs-getaddrinfo]** | ❔ | ✅ | ✅ | ❎ [^3] |
-| **Configurable cache** | ❔ | ❌ | ❌ | ❎ [^4] |
-| **Built-in cache** | ❔ | ✅ | ✅ | ✅ |
-| **Cache size** | ❔ | ❌ | ❌ | ❌ |
-| **Cache TTL** | ❔ | ❎ [^5] | ✅ | ✅ |
-| **Cache lock** | ❔ | ✅ | ❌ | ❌ |
-| **Cache lock timeout** | ❔ | ❌ | ❌ | ❌ |
-| **Cache round robin** | ❔ | ✅ | ✅ | ❌ |
-| **Expired cache fallback** | ❔ | ❌ | ❌ | ❌ |
-| **Cache failures** | ❔ | ❌ | ❌ | ✅ |
-| **Circuit breaker** | ❔ | ❌ | ❌ | ❌ |
-| **Installment API** | ❔ | ✅ | ❌ | ✅ |
+| **dns.lookup compatible**                 | ❔ | ✅      | ❎ [^1] | ❎ [^2] |
+| **IP recognition**                        | ❔ | ✅      | ❌      | ❌      |
+| **docs-etc-hosts file**                   | ❔ | ✅      | ❌      | ❌      |
+| **Configurable resolver**                 | ❔ | ❌      | ✅      | ❌      |
+| **Built-in resolver without getaddrinfo** | ❔ | ✅      | ❎ [^3] | ✅      |
+| **Configurable cache**                    | ❔ | ❌      | ✅      | ❌      |
+| **Persistent cache**                      | ❔ | ❌      | ✅      | ❌      |
+| **Built-in cache**                        | ❔ | ✅      | ✅      | ✅      |
+| **Cache size**                            | ❔ | ❌      | ❌      | ❌      |
+| **Cache TTL**                             | ❔ | ❎ [^4] | ✅      | ✅      |
+| **Cache lock**                            | ❔ | ✅      | ❌      | ❌      |
+| **Cache lock timeout**                    | ❔ | ❌      | ❌      | ❌      |
+| **Cache round robin**                     | ❔ | ✅      | ❌      | ✅      |
+| **Expired cache fallback**                | ❔ | ❌      | ❌      | ❌      |
+| **Cache failures**                        | ❔ | ❌      | ❌      | ❌      |
+| **Circuit breaker**                       | ❔ | ❌      | ❌      | ❌      |
+| **Installment API**                       | ❔ | ✅      | ✅      | ❌      |
+| **Exports CommonJS**                      | ❔ | ✅      | ❌      | ✅      |
+| **Exports ESM**                           | ❔ | ✅      | ✅      | ❌      |
+| **Exports TypeScript**                    | ❔ | ✅      | ✅      | ❌      |
 
-[^1]: [dns-lookup-cache][package-dns-lookup-cache] supports only family (number 0, 4 or 6) and all (boolean) options.
-[^2]: [cacheable-lookup][package-cacheable-lookup] supports only family (number 0, 4 or 6), all (boolean),  options and hints ([flags][docs-dns-flags]) options.
-[^3]: [cacheable-lookup][package-cacheable-lookup] supports only synchronous cache like [Map][docs-ecma-map].
-[^4]: [cacheable-lookup][package-cacheable-lookup] requires configured Resolver, otherwise it falls back to [dns.lookup][docs-dns-lookup].
-[^5]: [better-lookup][package-better-lookup] enforces max TTL of 10 seconds.
+[^1]: [cacheable-lookup][package-cacheable-lookup] supports only family (number 0, 4 or 6), all (boolean), options and hints ([flags][docs-dns-flags]) options.
+[^2]: [dns-lookup-cache][package-dns-lookup-cache] supports only family (number 0, 4 or 6) and all (boolean) options.
+[^3]: [cacheable-lookup][package-cacheable-lookup] by default have fallback to [dns.lookup][docs-dns-lookup].
+[^4]: [better-lookup][package-better-lookup] enforces max TTL of 10 seconds.
+
+| Statistics | ⚡ node-dns-lookup | [better-lookup][package-better-lookup] | [cacheable-lookup][package-cacheable-lookup] | [dns-lookup-cache][package-dns-lookup-cache] |
+|:--|:--|:--|:--|:--|
+| **Downloads per month** | ![❔](https://img.shields.io/npm/dm/node-dns-lookup) | ![❔](https://img.shields.io/npm/dm/better-lookup) | ![❔](https://img.shields.io/npm/dm/cacheable-lookup) | ![❔](https://img.shields.io/npm/dm/dns-lookup-cache) |
+| **Stars**               | ![❔](https://img.shields.io/github/stars/sempasha/node-dns-lookup) | ![❔](https://img.shields.io/github/stars/ayonli/better-lookup) | ![❔](https://img.shields.io/github/stars/szmarczak/cacheable-lookup) | ![❔](https://img.shields.io/github/stars/LCMApps/dns-lookup-cache) |
+| **Issues**              | ![❔](https://img.shields.io/github/issues/sempasha/node-dns-lookup) | ![❔](https://img.shields.io/github/issues/ayonli/better-lookup) | ![❔](https://img.shields.io/github/issues/szmarczak/cacheable-lookup) | ![❔](https://img.shields.io/github/issues/LCMApps/dns-lookup-cache) |
+| **Pull requests**       | ![❔](https://img.shields.io/github/issues-pr/sempasha/node-dns-lookup) | ![❔](https://img.shields.io/github/issues-pr/ayonli/better-lookup) | ![❔](https://img.shields.io/github/issues-pr/szmarczak/cacheable-lookup) | ![❔](https://img.shields.io/github/issues-pr/LCMApps/dns-lookup-cache) |
 
 <!--- links -->
 
