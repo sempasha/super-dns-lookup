@@ -1,4 +1,7 @@
-# ⚡ fast and reliable dns.lookup
+# ⚡ Super dns.lookup
+
+NodeJS [dns.lookup][docs-dns-lookup] compatible function without threads pool usage,
+with customizable cache, resolver, fallback strategies and hosts file support.
 
 ## 💡 Motivation
 
@@ -80,7 +83,7 @@ New lookup function should be used to:
 * **Cache failures** - ability to avoid query flood by caching `ENOTFOUND` and `ENODATA` response for some time;
 * **Circuit breaker** - ability to avoid query flood by limiting communication with resolver for some time after `SERVFAIL` and `REFUSED` errors  or query timeout. May be based on caching failed query result for some time;
 * **Installment API** - ability to install lookup function on [HTTP Agent](https://nodejs.org/api/http.html#class-httpagent) or even more;
-**Exports CommonJS, ESM, TypeScript** - ability to use CommonJS and ESM exports of package or TypeScript declarations.
+* **Exports CommonJS, ESM, TypeScript** - ability to use CommonJS and ESM exports of package or TypeScript declarations.
 
 ## 📦 Alternatives
 
@@ -90,7 +93,7 @@ There are at least three alternatives:
 * [dns-lookup-cache][package-dns-lookup-cache];
 * [cacheable-lookup][package-cacheable-lookup].
 
-| Feature | ⚡ node-dns-lookup | [better-lookup][package-better-lookup] | [cacheable-lookup][package-cacheable-lookup] | [dns-lookup-cache][package-dns-lookup-cache] |
+| Feature | ⚡ super-dns-lookup | [better-lookup][package-better-lookup] | [cacheable-lookup][package-cacheable-lookup] | [dns-lookup-cache][package-dns-lookup-cache] |
 |:--|:--|:--|:--|:--|
 | **dns.lookup compatible**                 | ❔ | ✅      | ❎ [^1] | ❎ [^2] |
 | **IP recognition**                        | ❔ | ✅      | ❌      | ❌      |
@@ -118,12 +121,13 @@ There are at least three alternatives:
 [^3]: [cacheable-lookup][package-cacheable-lookup] by default have fallback to [dns.lookup][docs-dns-lookup].
 [^4]: [better-lookup][package-better-lookup] enforces max TTL of 10 seconds.
 
-| Statistics | ⚡ node-dns-lookup | [better-lookup][package-better-lookup] | [cacheable-lookup][package-cacheable-lookup] | [dns-lookup-cache][package-dns-lookup-cache] |
+| Statistics | ⚡ super-dns-lookup | [better-lookup][package-better-lookup] | [cacheable-lookup][package-cacheable-lookup] | [dns-lookup-cache][package-dns-lookup-cache] |
 |:--|:--|:--|:--|:--|
-| **Downloads per month** | ![❔](https://img.shields.io/npm/dm/node-dns-lookup) | ![❔](https://img.shields.io/npm/dm/better-lookup) | ![❔](https://img.shields.io/npm/dm/cacheable-lookup) | ![❔](https://img.shields.io/npm/dm/dns-lookup-cache) |
-| **Stars**               | ![❔](https://img.shields.io/github/stars/sempasha/node-dns-lookup) | ![❔](https://img.shields.io/github/stars/ayonli/better-lookup) | ![❔](https://img.shields.io/github/stars/szmarczak/cacheable-lookup) | ![❔](https://img.shields.io/github/stars/LCMApps/dns-lookup-cache) |
-| **Issues**              | ![❔](https://img.shields.io/github/issues/sempasha/node-dns-lookup) | ![❔](https://img.shields.io/github/issues/ayonli/better-lookup) | ![❔](https://img.shields.io/github/issues/szmarczak/cacheable-lookup) | ![❔](https://img.shields.io/github/issues/LCMApps/dns-lookup-cache) |
-| **Pull requests**       | ![❔](https://img.shields.io/github/issues-pr/sempasha/node-dns-lookup) | ![❔](https://img.shields.io/github/issues-pr/ayonli/better-lookup) | ![❔](https://img.shields.io/github/issues-pr/szmarczak/cacheable-lookup) | ![❔](https://img.shields.io/github/issues-pr/LCMApps/dns-lookup-cache) |
+| **Downloads per month** | ![❔](https://img.shields.io/npm/dm/super-dns-lookup) | ![❔](https://img.shields.io/npm/dm/better-lookup) | ![❔](https://img.shields.io/npm/dm/cacheable-lookup) | ![❔](https://img.shields.io/npm/dm/dns-lookup-cache) |
+| **Stars**               | ![❔](https://img.shields.io/github/stars/sempasha/super-dns-lookup) | ![❔](https://img.shields.io/github/stars/ayonli/better-lookup) | ![❔](https://img.shields.io/github/stars/szmarczak/cacheable-lookup) | ![❔](https://img.shields.io/github/stars/LCMApps/dns-lookup-cache) |
+| **Issues**              | ![❔](https://img.shields.io/github/issues/sempasha/super-dns-lookup) | ![❔](https://img.shields.io/github/issues/ayonli/better-lookup) | ![❔](https://img.shields.io/github/issues/szmarczak/cacheable-lookup) | ![❔](https://img.shields.io/github/issues/LCMApps/dns-lookup-cache) |
+| **Pull requests**       | ![❔](https://img.shields.io/github/issues-pr/sempasha/super-dns-lookup) | ![❔](https://img.shields.io/github/issues-pr/ayonli/better-lookup) | ![❔](https://img.shields.io/github/issues-pr/szmarczak/cacheable-lookup) | ![❔](https://img.shields.io/github/issues-pr/LCMApps/dns-lookup-cache) |
+| **Last Commit**         | ![❔](https://img.shields.io/github/last-commit/sempasha/super-dns-lookup) | ![❔](https://img.shields.io/github/last-commit/ayonli/better-lookup) | ![❔](https://img.shields.io/github/last-commit/szmarczak/cacheable-lookup) | ![❔](https://img.shields.io/github/last-commit/LCMApps/dns-lookup-cache) |
 
 <!--- links -->
 
