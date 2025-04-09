@@ -66,11 +66,11 @@ New lookup function should be used to:
 
 ## 📋 Features
 
-* **[dns.lookup][docs-dns-lookup] compatible** - module provides function fully compatible with NodeJS's builtin [dns.lookup][docs-dns-lookup];
+* **dns.lookup compatible** - module provides function fully compatible with NodeJS's builtin [dns.lookup][docs-dns-lookup];
 * **IP recognition** - recognize when host name is IP address and resolve it immediately without querying resolver;
-* **[/etc/hosts][docs-etc-hosts] file** - ability to resolve host name based on [/etc/hosts][docs-etc-hosts];
+* **/etc/hosts file** - ability to resolve host name based on [/etc/hosts][docs-etc-hosts];
 * **Configurable resolver** - ability to set resolver service with interface like [resolve4][docs-dns-resolve4]/[resolve6][docs-dns-resolve6];
-* **Built-in resolver without [docs-getaddrinfo][docs-getaddrinfo]** - ability to use builtin resolver which do not relay on [dns.lookup][docs-dns-lookup] and [docs-getaddrinfo][docs-getaddrinfo];
+* **Built-in resolver without getaddrinfo** - ability to use builtin resolver which do not relay on [dns.lookup][docs-dns-lookup] and [getaddrinfo][docs-getaddrinfo];
 * **Configurable cache** - ability to provide cache service with interface like set, get, list and delete;
 * **Persistent cache** - ability to export cache into storage (file or service);
 * **Built-in cache** - ability to use built-in cache, usually in memory cache;
@@ -95,16 +95,16 @@ There are at least three alternatives:
 
 | Feature | ⚡ super-dns-lookup | [better-lookup][package-better-lookup] | [cacheable-lookup][package-cacheable-lookup] | [dns-lookup-cache][package-dns-lookup-cache] |
 |:--|:--|:--|:--|:--|
-| **dns.lookup compatible**                 | ❔ | ✅      | ❎ [^1] | ❎ [^2] |
+| **dns.lookup compatible**                 | ❔ | ❎ [^1] | ❎ [^2] | ❎ [^3] |
 | **IP recognition**                        | ❔ | ✅      | ❌      | ❌      |
 | **docs-etc-hosts file**                   | ❔ | ✅      | ❌      | ❌      |
 | **Configurable resolver**                 | ❔ | ❌      | ✅      | ❌      |
-| **Built-in resolver without getaddrinfo** | ❔ | ✅      | ❎ [^3] | ✅      |
+| **Built-in resolver without getaddrinfo** | ❔ | ✅      | ❎ [^4] | ✅      |
 | **Configurable cache**                    | ❔ | ❌      | ✅      | ❌      |
 | **Persistent cache**                      | ❔ | ❌      | ✅      | ❌      |
 | **Built-in cache**                        | ❔ | ✅      | ✅      | ✅      |
 | **Cache size**                            | ❔ | ❌      | ❌      | ❌      |
-| **Cache TTL**                             | ❔ | ❎ [^4] | ✅      | ✅      |
+| **Cache TTL**                             | ❔ | ❎ [^5] | ✅      | ✅      |
 | **Cache lock**                            | ❔ | ✅      | ❌      | ❌      |
 | **Cache lock timeout**                    | ❔ | ❌      | ❌      | ❌      |
 | **Cache round robin**                     | ❔ | ✅      | ❌      | ✅      |
@@ -116,10 +116,17 @@ There are at least three alternatives:
 | **Exports ESM**                           | ❔ | ✅      | ✅      | ❌      |
 | **Exports TypeScript**                    | ❔ | ✅      | ✅      | ❌      |
 
-[^1]: [cacheable-lookup][package-cacheable-lookup] supports only family (number 0, 4 or 6), all (boolean), options and hints ([flags][docs-dns-flags]) options.
-[^2]: [dns-lookup-cache][package-dns-lookup-cache] supports only family (number 0, 4 or 6) and all (boolean) options.
-[^3]: [cacheable-lookup][package-cacheable-lookup] by default have fallback to [dns.lookup][docs-dns-lookup].
-[^4]: [better-lookup][package-better-lookup] enforces max TTL of 10 seconds.
+[^1]: [better-lookup][package-better-lookup] supports only `all` (boolean) and `family` (`0`, `4` or `6`) options.
+Options `hints` ([flags][docs-getaddrinfo-flags]), `order` (`verbatim`, `ipv4first`, `ipv6first`) and
+deprecated `verbatim` (boolean) doesn't supported.
+[^2]: [cacheable-lookup][package-cacheable-lookup] supports only `all` (boolean), `family` (`0`, `4` or `6`) and
+`hints` ([flags][docs-getaddrinfo-flags]) options. Options `order` (`verbatim`, `ipv4first`, `ipv6first`) and
+deprecated `verbatim` (boolean) doesn't supported.
+[^3]: [dns-lookup-cache][package-dns-lookup-cache] supports only `family` (`0`, `4` or `6`) and `all` (boolean) options.
+Options `hints` ([flags][docs-getaddrinfo-flags]), `order` (`verbatim`, `ipv4first`, `ipv6first`) and
+deprecated `verbatim` (boolean) doesn't supported.
+[^4]: [cacheable-lookup][package-cacheable-lookup] by default have fallback to [dns.lookup][docs-dns-lookup].
+[^5]: [better-lookup][package-better-lookup] enforces max TTL of 10 seconds.
 
 | Statistics | ⚡ super-dns-lookup | [better-lookup][package-better-lookup] | [cacheable-lookup][package-cacheable-lookup] | [dns-lookup-cache][package-dns-lookup-cache] |
 |:--|:--|:--|:--|:--|
@@ -135,7 +142,6 @@ There are at least three alternatives:
 [docs-dgram-create-socket]: https://nodejs.org/api/dgram.html#dgramcreatesocketoptions-callback '🐢 NodeJS dgram.createSocket'
 [docs-dgram-socket-send]: https://nodejs.org/api/dgram.html#socketsendmsg-offset-length-port-address-callback '🐢 NodeJS dgram.Socket#send'
 [docs-dns]: https://nodejs.org/api/dns.html '🐢 NodeJS dns module'
-[docs-dns-flags]: (https://nodejs.org/api/dns.html#supported-getaddrinfo-flags) '🐢 NodeJS getaddrinfo flags'
 [docs-dns-lookup]: https://nodejs.org/api/dns.html#dnslookuphostname-options-callback '🐢 NodeJS dns.lookup'
 [docs-dns-lookup-implementation]: https://nodejs.org/api/dns.html#dnslookup '🐢 NodeJS dns.lookup implementation considerations'
 [docs-dns-resolve4]: https://nodejs.org/api/dns.html#dnsresolve4hostname-options-callback '🐢 NodeJS dns.resolve4'
@@ -143,6 +149,7 @@ There are at least three alternatives:
 [docs-ecma-map]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map '📖 Map'
 [docs-etc-hosts]: https://www.man7.org/linux/man-pages/man5/hosts.5.html '🐧 Linux manual page — /etc/hosts(5)'
 [docs-getaddrinfo]: https://www.man7.org/linux/man-pages/man3/getaddrinfo.3.html '🐧 Linux manual page — getaddrinfo(3)'
+[docs-getaddrinfo-flags]: (https://nodejs.org/api/dns.html#supported-getaddrinfo-flags) '🐢 NodeJS getaddrinfo flags'
 [docs-http-request]: https://nodejs.org/api/http.html#httprequestoptions-callback '🐢 NodeJS http.requsst'
 [docs-net-socket-connect]: https://nodejs.org/api/net.html#socketconnectoptions-connectlistener '🐢 NodeJS net.Socket#connect'
 [package-better-lookup]: https://github.com/ayonli/better-lookup '📦 better-lookup library'
