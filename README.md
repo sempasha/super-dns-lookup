@@ -34,7 +34,7 @@ New lookup function should be used to:
 * Create new tcp connection while performing [http.request][docs-http-request]:
   ```ts
   import { request } from 'node:http';
-  import { lookup } from '@sempasha/dns.lookup';
+  import { lookup } from 'super-dns-lookup';
 
   const req = request('https://example.com', { lookup }, (res) => {
     /* handle response */
@@ -44,7 +44,7 @@ New lookup function should be used to:
 * Connect tcp socket via [net.Socket#connect][docs-net-socket-connect]:
   ```ts
   import { Socket } from 'node:net';
-  import { lookup } from '@sempasha/dns.lookup';
+  import { lookup } from 'super-dns-lookup';
   
   const socket = new Socket();
   socket.connect('example.com', { lookup }, () => {
@@ -56,7 +56,7 @@ New lookup function should be used to:
   for sending some data via [dgram.Socket#send][docs-dgram-socket-send]:
   ```ts
   import { createSocket } from 'node:udp';
-  import { lookup } from '@sempasha/dns.lookup';
+  import { lookup } from 'super-dns-lookup';
   
   const socket = createSocket({ lookup });
   socket.send('hello world', () => {
@@ -147,16 +147,14 @@ class CacheService {
 }
 
 class HostsFileService {
-  +read()
-  +resolve4(hostname) address[]
-  +resolve6(hostname) address[]
+  +read(): [hostname, address][]
+  +watch(updateHandler)
   +stopWatching()
-  +watch()
 }
 
 class IsIpService {
-  +isIPv4(hostname) boolean
-  +isIPv6(hostname) boolean
+  +isIPv4(string) boolean
+  +isIPv6(string) boolean
 }
 
 class ResolverService {
@@ -184,8 +182,8 @@ LookupController --> ResolverService : resolve hostname to addresses
 | Feature | How it works |
 |:--|:--|
 | **dns.lookup compatible** | `LookupController#lookup` is fully compatible with `dns.lookup` interface. It accepts all parameters, including the deprecated `verbatim` flag. It also supports `hints` with all documented [here][docs-getaddrinfo-flags] flags of `getaddrinfo`. When parameters `order` and the `verbatim` are not provided, it will use the default order determined by [`dns.getDefaultResultOrder`][docs-dns-getdefaultresultorder]. When `dns.ADDRCONFIG` flag provided the `LookupController` checks available IP address families using [`os.networkInterfaces`][docs-os-networkinterfaces] |
-| **IP recognition** | `LookupController#lookup` method begins by using the `IsIpService` to verify if the provided `hostname` is an IP address. If the `hostname` is confirmed to be an IP address and its family aligns with the requested `family`, the `LookupController#lookup` returns the identified IP address. To reduce the overhead of repeated IP address checks, the `LookupController` caches the results of these verifications using `CacheService`. |
-| **Hosts file support** | After `LookupController#lookup` checks that the provided `hostname` is not an IP address, it tries to resolve the `hostname` using `HostsFileService#resolve4` and/or `HostsFileService#resolve6`. Before it does this for the first time, the controller makes sure that the hosts file has been read and parsed by waiting for `HostsFileService#read` to finish. `HostsFileService` can also monitor the `/etc/hosts` file. Whenever this file changes, `HostsFileService` will use the latest information to resolve the hostname into an IP address. The methods `HostsFileService#watch` and `HostsFileService#stopWatching` are used to start and stop this monitoring process. During the `LookupController#bootstrap` process, `LookupController` uses `HostsFileService#read` and `HostsFileService#watch`, and it calls `HostsFileService#stopWatch` during the `LookupController#teardown`. |
+| **IP recognition** | `LookupController#lookup` method begins by using the `IsIpService` to verify if the provided hostname is an IP address. If the hostname is confirmed to be an IP address and its family aligns with the requested `family`, the `LookupController#lookup` returns the identified IP address. To reduce the overhead of repeated IP address checks, the `LookupController` caches the results of these verifications using `CacheService`. |
+| **Hosts file support** | When `LookupController#lookup` verifies that the provided hostname is not an IP address, it checks whether the hostname is present in the hosts file. For hostnames found in the hosts file, the controller responds with the IP address specified there. For other hostnames, the controller continues resolving them using `ResolverService`. To obtain a list of hostname/address pairs from the hosts file, `LookupController` uses the `HostsFileService#read` method, which locates the hosts file on disk and reads it to retrieve all mentioned pairs. Since `HostsFileService#read` is asynchronous, `LookupController` calls this method during `LookupController#bootstrap` and every time the hosts file changes. To monitor changes to the hosts file, `LookupController` employs `HostsFileService#watch`, which accepts a handler function that is called whenever the hosts file is modified. To stop monitoring the hosts file changes, `LookupController` calls `HostsFileService#stopWatching` during `LookupController#teardown`. If a user does not want to or is unable to use `LookupController#bootstrap` and `LookupController#teardown`, monitoring the hosts file changes becomes impossible. In this case, the hosts file will only be read during the first call to `LookupController#lookup`, making the initial lookup slightly slower than subsequent ones. |
 | **Configurable resolver** | `LookupController` utilizes `ResolverService` to handle DNS resolution queries. The `ResolverService` interface is compatible with the [`dns.Resolver`][docs-dns-resolver] interface, allowing users to use [`dns.Resolver`][docs-dns-resolver] as `ResolverService` if desired. The default implementation of `ResolverService` based on the [`resolve4`][docs-dns-resolve4] and [`resolve6`][docs-dns-resolve6] functions from the dns module. |
 | **Built-in resolver without getaddrinfo** | The `LookupController#lookup` method uses `HostsFileService#resolve4`/`resolve6` and `ResolverService#resolve4`/`resolve6` for hostname resolution. The default implementations of `HostsFileService` and `ResolverService` do not use `getaddrinfo`. |
 | **Configurable cache** | `LookupController` utilizes the `CacheService` for two primary purposes: storing the results of `IsIpService` checks to avoid redundant lookups and temporarily storing resolution results to improve performance. The `CacheService` features a straightforward `get` and `set` interface, making it compatible with the standard  [`Map`][docs-mdn-map] object and the [lru-cache][package-lru-cache] module. This flexibility allows users to implement their own custom `CacheService` if desired, providing an additional layer of customization and control, and enabling them to tailor the caching mechanism to their specific needs. |
