@@ -157,6 +157,11 @@ class IsIpService {
   +isIPv6(string) boolean
 }
 
+class PersistentStorageService {
+  +read() data?
+  +write(data)
+}
+
 class ResolverService {
   +resolve4(hostname) [address, ttl][]
   +resolve6(hostname) [address, ttl][]
@@ -166,6 +171,7 @@ class LookupController {
   -cacheService
   -hostsFileService
   -isIpService
+  -persistentStorageService
   -resolverService
   +bootstrap()
   +install(agent)
@@ -173,10 +179,11 @@ class LookupController {
   +teardown()
 }
 
-LookupController --> CacheService : store is ip check results and resolved addresses
-LookupController --> HostsFileService : resolve addresses using hosts file contents and watch for file changes
-LookupController --> IsIpService : check whether provided hostname is an ip address
-LookupController --> ResolverService : resolve hostname to addresses
+LookupController --> CacheService : store is ip check results<br />and resolved addresses
+LookupController --> HostsFileService : resolve hostname<br />with hosts file data<br />and watch for file changes
+LookupController --> IsIpService : check whether hostname<br />is an ip address or not
+LookupController --> PersistentStorageService : save and load<br />cache initial data
+LookupController --> ResolverService : resolve hostname<br />to ip addresses
 ```
 
 | Feature | How it works |
@@ -187,7 +194,7 @@ LookupController --> ResolverService : resolve hostname to addresses
 | **Configurable resolver** | `LookupController` utilizes `ResolverService` to handle DNS resolution queries. The `ResolverService` interface is compatible with the [`dns.Resolver`][docs-dns-resolver] interface, allowing users to use [`dns.Resolver`][docs-dns-resolver] as `ResolverService` if desired. The default implementation of `ResolverService` based on the [`resolve4`][docs-dns-resolve4] and [`resolve6`][docs-dns-resolve6] functions from the dns module. |
 | **Built-in resolver without getaddrinfo** | The `LookupController#lookup` method uses `HostsFileService#resolve4`/`resolve6` and `ResolverService#resolve4`/`resolve6` for hostname resolution. The default implementations of `HostsFileService` and `ResolverService` do not use `getaddrinfo`. |
 | **Configurable cache** | `LookupController` utilizes the `CacheService` for two primary purposes: storing the results of `IsIpService` checks to avoid redundant lookups and temporarily storing resolution results to improve performance. The `CacheService` features a straightforward `get` and `set` interface, making it compatible with the standard  [`Map`][docs-mdn-map] object and the [lru-cache][package-lru-cache] module. This flexibility allows users to implement their own custom `CacheService` if desired, providing an additional layer of customization and control, and enabling them to tailor the caching mechanism to their specific needs. |
-| **Persistent cache** | `CacheService` partially implements the [`Map`][docs-mdn-map] interface and should also implement an [iterator][docs-mdn-map-iterator] to allow users to dump all cached data into persistent storage. |
+| **Persistent cache** | `LookupController` can optionally use a `PersistentStorageService` to preload data into `CacheService` during `LookupController#bootstrap` and persist the cache during `LookupController#teardown` for future runs. By default no `PersistentStorageService` is configured, so you must supply your own to enable persistence. |
 | **Built-in cache** | `LookupController` uses the [lru-cache][package-lru-cache] module to implement its built-in `CacheService`. Memory capacity is limited to store 1000 resolved IP addresses. Thislimit is adjustable, allowing users to customize the caching behavior to suit their specific requirements. |
 | **Cache size** | Default `CacheService` implementation, based on [lru-cache][package-lru-cache], has a limit of 1000 IP address records stored in memory, but users can adjust the cache size to store more or fewer IP addresses, set a memory limit by specifying kilobytes or megabytes, or even implement their own `CacheService` to take responsibility for limiting storage size on their own. |
 | **Cache TTL** | `LookupController` respects DNS record's TTL, and when saving resolved records using `CacheService`, it stores not only the IP address but also the record's TTL, ensuring that cached records are not expired by checking the TTL before using them, and updating expired records with a new query. |
@@ -221,7 +228,6 @@ LookupController --> ResolverService : resolve hostname to addresses
 [docs-http-request]: https://nodejs.org/api/http.html#httprequestoptions-callback '🐢 NodeJS http.requsst'
 [docs-https-agent]: https://nodejs.org/api/https.html#class-httpsagent '🐢 NodeJS https.Agent'
 [docs-mdn-map]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map '📖 Map class'
-[docs-mdn-map-iterator]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/Symbol.iterator '📖 Map class iterator'
 [docs-net-socket-connect]: https://nodejs.org/api/net.html#socketconnectoptions-connectlistener '🐢 NodeJS net.Socket#connect'
 [docs-os-networkinterfaces]: https://nodejs.org/docs/latest/api/os.html#osnetworkinterfaces '🐢 NodeJS os.networkInterfaces'
 [package-better-lookup]: https://github.com/ayonli/better-lookup '📦 better-lookup library'
