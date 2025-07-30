@@ -1,0 +1,13 @@
+.idea/
+.npm/
+.vscode/
+coverage/
+node_modules/
+.npmrc
+*.log
+*.tgz
+*.tsbuildinfo
+.DS_Store
+*.js
+*.d.ts
+!/.*.js
