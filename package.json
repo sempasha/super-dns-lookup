@@ -1,0 +1,54 @@
+{
+  "name": "super-dns-lookup",
+  "version": "0.0.0",
+  "description": "NodeJS dns.lookup compatible function without threads pool usage, with customizable cache, resolver, fallback strategies and hosts file support",
+  "files": [
+    "lib/**/*.{d.ts,js}",
+    "*.{d.ts,js}"
+  ],
+  "exports": {
+    "module-sync": "./index.js",
+    "types": "./index.d.ts"
+  },
+  "scripts": {
+    "clean": "npx rimraf --glob '{lib,test}/**/*.{d.ts,js}' '*.{d.ts,js}'",
+    "build": "tsc --project tsconfig.build.json",
+    "prepack": "npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "husky install"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sempasha/super-dns-lookup.git"
+  },
+  "keywords": [
+    "dns",
+    "dns-resolve",
+    "dns-lookup",
+    "lookup",
+    "resolve",
+    "getaddrinfo",
+    "non-blocking"
+  ],
+  "author": "@sempasha",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sempasha/super-dns-lookup/issues"
+  },
+  "homepage": "https://github.com/sempasha/super-dns-lookup",
+  "dependencies": {
+    "rimraf": "^6.0.1"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
+    "@types/node": "^24.1.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.2",
+    "prettier": "^3.6.2",
+    "typescript": "^5.8.3"
+  },
+  "lint-staged": {
+    "*.{js,json,md,ts,yaml}": "prettier --write"
+  }
+}
