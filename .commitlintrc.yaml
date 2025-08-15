@@ -1,2 +1,7 @@
 extends: '@commitlint/config-conventional'
 parserPreset: conventional-changelog-angular
+rules:
+  header-max-length:
+    - 2
+    - always
+    - 1000
