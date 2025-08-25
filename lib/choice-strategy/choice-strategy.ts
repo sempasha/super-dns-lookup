@@ -4,7 +4,7 @@
  *
  * @group ChoiceStrategy
  * @example
- * import { ChoiceStrategy, EmptyArrayError, LookupController } from 'super-dns-lookup';
+ * import { type ChoiceStrategy, EmptyArrayError } from 'super-dns-lookup';
  *
  * export class ChoiceStrategyExample implements ChoiceStrategy {
  *   public chooseOne<Element>(array: Element[]): Element {

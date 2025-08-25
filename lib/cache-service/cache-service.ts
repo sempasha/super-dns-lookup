@@ -4,10 +4,10 @@
  *
  * @group CacheService
  * @example
- * import { CacheService, LookupController } from 'super-dns-lookup';
+ * import { type CacheService, LookupController } from 'super-dns-lookup';
  *
  * export class CacheServiceExample<Value = unknown> implements CacheService<Value> {
- *   protected storage: Record<string, Value> = {};
+ *   protected readonly storage: Record<string, Value> = {};
  *
  *   public get(key: string): Value | undefined {
  *     return this.storage[key];
@@ -21,7 +21,7 @@
 export interface CacheService<Value extends unknown = unknown> {
   /**
    * Provides iterable object which give an ability to iterate over `[key, value]` pairs stored in cache.
-   * Acts same way as {@link Map#entries}.
+   * Acts same way as [Map#entries](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/entries).
    *
    * @example
    * import { equal } from 'node:assert';
@@ -47,7 +47,7 @@ export interface CacheService<Value extends unknown = unknown> {
    * 1. It has never been stored with {@link CacheService#set}.
    * 2. It has been evicted from storage due to lack of space or other reasons. Cache memory management behavior may vary.
    *
-   * Acts same way as LRUCache#get.
+   * Acts same way as [Map#get](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/get).
    *
    * @example
    * import { strictEqual } from 'node:assert';
@@ -65,7 +65,7 @@ export interface CacheService<Value extends unknown = unknown> {
   /**
    * Stores a value associated with the given key string.
    * Overrides the previously stored value with the new one if the key already has an associated value in the cache.
-   * Acts same way as LRUCache#set.
+   * Acts same way as [Map#set](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/set).
    *
    * @example
    * import { strictEqual } from 'node:assert';

@@ -1,43 +1,12 @@
-/**
- * A hostname resolution result is an array of ip address and A/AAAA record TTL. This interface represents such a pair. {@link ResolverService#resolve4} and {@link ResolverService#resolve6} both return a list of ip address / ttl pairs.
- *
- * @group ResolverService
- * @example
- * import { ResolvedAddress } from 'super-dns-lookup';
- *
- * function resolveExampleCom(hostname: string): ResolvedAddress[] {
- *   if (hostname === 'example.com') {
- *     return [
- *       ['23.192.228.80', 3600],
- *       ['23.192.228.84', 3600],
- *       ['23.215.0.136', 3600],
- *       ['23.215.0.138', 3600],
- *       ['96.7.128.175', 3600],
- *       ['96.7.128.198', 3600],
- *     ];
- *   }
- *   throw new NotFound(hostname);
- * }
- */
-export interface ResolvedAddress {
-  /**
-   * An IP address string.
-   */
-  address: string;
-
-  /**
-   * An A or AAAA record TTL expressed in seconds.
-   */
-  ttl: number;
-}
+import { type ResolvedAddress } from './resolved-address';
 
 /**
  * ResolverService is a simple DNS resolver which relay only on network based resolution protocols.
- * In contrast to NodeJS's [dns.resolve4](https://nodejs.org/docs/latest/api/dns.html#dnspromisesresolve4hostname-options) and [dns.resolve6](https://nodejs.org/docs/latest/api/dns.html#dnspromisesresolve6hostname-options) it always resolves hostname into a list of IP addresses and always returns A/AAAA record's TTL.
+ * In contrast to NodeJS built-in [dns.resolve4](https://nodejs.org/docs/latest/api/dns.html#dnspromisesresolve4hostname-options) and [dns.resolve6](https://nodejs.org/docs/latest/api/dns.html#dnspromisesresolve6hostname-options) it always resolves hostname into a list of IP addresses and always returns A/AAAA record's TTL.
  *
  * @group ResolverService
  * @example
- * import { ResolverService } from 'super-dns-lookup';
+ * import { type ResolverService } from 'super-dns-lookup';
  *
  * class ResolverServiceExample implements ResolverService {
  *   public resolve4(hostname: string) {
@@ -85,8 +54,8 @@ export interface ResolverService {
   resolve4(hostname: string): Promise<ResolvedAddress[]>;
 
   /**
-   * Resolves hostname to an IPv4 addresses using DNS query.
-   * Provides the IP address and A record TTL for each found record.
+   * Resolves hostname to an IPv6 addresses using DNS query.
+   * Provides the IP address and AAAA record TTL for each found record.
    *
    * @example
    * import { ResolverService } from './resolver-service-example';

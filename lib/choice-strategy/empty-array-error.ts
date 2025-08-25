@@ -6,6 +6,8 @@ import { SuperDnsLookupError } from '../error';
  * @group ChoiceStrategy
  * @group Errors
  * @example
+ * import { EmptyArrayError } from 'super-dns-lookup';
+ *
  * const emptyArray = [];
  * if (emptyArray) {
  *   throw new EmptyArrayError(emptyArray);
@@ -17,6 +19,6 @@ export class EmptyArrayError extends SuperDnsLookupError {
    * @param emptyArray An empty array, user want to use this array for debug purpose.
    */
   public constructor(public readonly emptyArray: unknown[]) {
-    super('Array must have at least one element, ' + 'see EmptyArrayError#emptyArray for more details');
+    super('Array must have at least one element, see EmptyArrayError#emptyArray for more details');
   }
 }

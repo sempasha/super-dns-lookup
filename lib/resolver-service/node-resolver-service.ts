@@ -1,5 +1,6 @@
-import { resolve4, resolve6 } from 'node:dns/promises';
-import { ResolvedAddress, ResolverService } from './resolver-service';
+import dns from 'node:dns/promises';
+import { type ResolvedAddress } from './resolved-address';
+import { type ResolverService } from './resolver-service';
 
 /**
  * NodeResolver is a simple resolver service based on NodeJS built-in [dns.resolve4](https://nodejs.org/docs/latest/api/dns.html#dnspromisesresolve4hostname-options) and [dns.resolve6](https://nodejs.org/docs/latest/api/dns.html#dnspromisesresolve6hostname-options).
@@ -14,9 +15,8 @@ import { ResolvedAddress, ResolverService } from './resolver-service';
  */
 export class NodeResolverService implements ResolverService {
   /**
-   * Resolves hostname to an IPv4 addresses using DNS query.
+   * Resolves hostname to an IPv4 addresses using NodeJS built-in [dns.resolve4](https://nodejs.org/docs/latest/api/dns.html#dnspromisesresolve4hostname-options).
    * Provides the IP address and A record TTL for each found record.
-   * Proxies resolution request to NodeJS built-in [dns.resolve6](https://nodejs.org/docs/latest/api/dns.html#dnspromisesresolve4hostname-options).
    *
    * @example
    * import { equal } from 'node:assert';
@@ -29,13 +29,12 @@ export class NodeResolverService implements ResolverService {
    * @returns Promise of found IP address and A record TTL pairs list.
    */
   public async resolve4(hostname: string): Promise<ResolvedAddress[]> {
-    return resolve4(hostname, { ttl: true });
+    return dns.resolve4(hostname, { ttl: true });
   }
 
   /**
-   * Resolves hostname to an IPv4 addresses using DNS query.
-   * Provides the IP address and A record TTL for each found record.
-   * Proxies resolution request to NodeJS built-in [dns.resolve6](https://nodejs.org/docs/latest/api/dns.html#dnspromisesresolve6hostname-options).
+   * Resolves hostname to an IPv6 addresses using NodeJS built-in [dns.resolve6](https://nodejs.org/docs/latest/api/dns.html#dnspromisesresolve6hostname-options).
+   * Provides the IP address and AAAA record TTL for each found record.
    *
    * @example
    * import { equal } from 'node:assert';
@@ -48,6 +47,6 @@ export class NodeResolverService implements ResolverService {
    * @returns Promise of found IP address and A record TTL pairs list.
    */
   public async resolve6(hostname: string): Promise<ResolvedAddress[]> {
-    return resolve6(hostname, { ttl: true });
+    return dns.resolve6(hostname, { ttl: true });
   }
 }

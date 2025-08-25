@@ -1,32 +1,26 @@
-import { ADDRCONFIG, ALL, V4MAPPED } from 'node:dns';
-import type { LookupOptions as DNSLookupOptions } from 'node:dns';
+import { type LiteralUnion } from 'type-fest';
+import { type LookupAddress } from './lookup-address';
 
 /**
  * {@link LookupController#lookup} options. The goal of {@link LookupController} is to provide lookup function fully compatible with NodeJS built-in [dns.lookup](https://nodejs.org/docs/latest/api/dns.html#dnslookuphostname-options-callback), so basically LookupOptions matches with dns.lookup options.
  *
  * @group LookupController
  * @example
- * import { LookupOptions, LookupController } from 'super-dns-lookup';
+ * import { LookupOptions } from 'super-dns-lookup';
  *
- * export async function getIp4Addresses(
- *   hostname: string,
- *   controller: LookupController
- * ): Promise<string[]> {}
- *   const lookupOptions: LookupOptions<true> = {
- *     family: 4,
- *     all: true,
- *   };
- *   return controller.lookup(hostname, lookupOptions);
- * }
+ * const options: LookupOptions = {
+ *   family: 4,
+ *   all: true,
+ * };
  */
-export interface LookupOptions<All extends boolean | undefined = undefined> extends DNSLookupOptions {
+export interface LookupOptions {
   /**
    * When `true`, the callback returns all resolved addresses in an array.
    * Otherwise, returns a single address.
    *
    * @default false
    */
-  all?: All | undefined;
+  all?: boolean | undefined;
 
   /**
    * The record family. Must be `4`, `6`, or `0`.
@@ -37,7 +31,7 @@ export interface LookupOptions<All extends boolean | undefined = undefined> exte
    *
    * @default 0
    */
-  family?: 0 | 4 | 6 | 'IPv4' | 'IPv6' | number | undefined;
+  family?: LookupAddress['family'] | 'IPv4' | 'IPv6' | undefined;
 
   /**
    * One or more supported [getaddrinfo flags](https://nodejs.org/docs/latest/api/dns.html#supported-getaddrinfo-flags).
@@ -45,9 +39,23 @@ export interface LookupOptions<All extends boolean | undefined = undefined> exte
    *
    * @default 0
    */
-  hints?: 0 | typeof ADDRCONFIG | typeof ALL | typeof V4MAPPED | undefined;
+  hints?:
+    | LiteralUnion<
+        | 0 /** (nothing) */
+        | 8 /** V4MAPPED */
+        | 16 /** ALL */
+        | 24 /** V4MAPPED & ALL */
+        | 32 /** ADDRCONFIG */
+        | 40 /** V4MAPPED & ADDRCONFIG */
+        | 48 /** ALL & ADDRCONFIG */
+        | 56 /** V4MAPPED & ALL & ADDRCONFIG */,
+        number
+      >
+    | undefined;
 
   /**
+   * When both {@link order} and {@link verbatim} are `undefined`, the order will be defined by [dns.getDefaultResultOrder](https://nodejs.org/docs/latest/api/dns.html#dnsgetdefaultresultorder).
+   * When {@link order} is `undefined` and {@link verbatim} is `true`, the resolved addresses are return unsorted.
    * When `'verbatim'`, the resolved addresses are return unsorted.
    * When `'ipv4first'`, the resolved addresses are sorted by placing IPv4 addresses before IPv6 addresses.
    * When `'ipv6first'`, the resolved addresses are sorted by placing IPv6 addresses before IPv4 addresses.
@@ -65,4 +73,34 @@ export interface LookupOptions<All extends boolean | undefined = undefined> exte
    * @deprecated Please use `order` option instead.
    */
   verbatim?: boolean | undefined;
+}
+
+/**
+ * Variant of LookupOptions with {@link LookupOptions#all} set to true.
+ *
+ * @group LookupController
+ * @example
+ * import { LookupAllOptions } from 'super-dns-lookup';
+ *
+ * const options: LookupAllOptions = {
+ *   family: 4,
+ * };
+ */
+export interface LookupAllOptions extends LookupOptions {
+  all: true;
+}
+
+/**
+ * Variant of LookupOptions with {@link LookupOptions#all} set to false.
+ *
+ * @group LookupController
+ * @example
+ * import { LookupOneOptions } from 'super-dns-lookup';
+ *
+ * const options: LookupOneOptions = {
+ *   family: 4,
+ * };
+ */
+export interface LookupOneOptions extends LookupOptions {
+  all?: false | undefined;
 }

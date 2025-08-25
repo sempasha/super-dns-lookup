@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "declaration": true
+    "declaration": true,
+    "sourceMap": true
   },
   "extends": "./tsconfig.json",
   "include": ["index.ts"]

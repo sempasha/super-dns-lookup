@@ -1,11 +1,11 @@
 import { CONNREFUSED, NOTFOUND, REFUSED, SERVFAIL, TIMEOUT } from 'node:dns';
-import { FailoverStrategy } from './failover-strategy';
+import { type FailoverStrategy } from './failover-strategy';
 
 /**
  * @group FailoverStrategy
  * @example
  * import { REFUSED } from 'node:dns';
- * import { UniversalFailoverStrategy, UniversalFailoverStrategyOptions } from 'super-dns-lookup';
+ * import { UniversalFailoverStrategy, type UniversalFailoverStrategyOptions } from 'super-dns-lookup';
  *
  * const failoverStrategyOptions: UniversalFailoverStrategyOptions = {
  *   // cache only TIMEOUT errors
@@ -24,7 +24,7 @@ export interface UniversalFailoverStrategyOptions {
   /**
    * List of error codes when {@link LookupController} should cache error to reduce pressure on dns resolver service.
    *
-   * @default [dns.CONNREFUSED,dns.NOTFOUND,dns.REFUSED,dns.SERVFAIL,dns.TIMEOUT]
+   * @default [dns.CONNREFUSED, dns.NOTFOUND, dns.REFUSED, dns.SERVFAIL, dns.TIMEOUT]
    */
   cacheErrorCodes?: string[];
 
@@ -51,7 +51,7 @@ export interface UniversalFailoverStrategyOptions {
 }
 
 /**
- * This is default {@link FailoverStrategy}. It allows user to choose [error codes](https://nodejs.org/api/dns.html#error-codes) when {@link LookupController} should cache an error ans choose the TTL for that cache. It also give an ability to choose [error codes](https://nodejs.org/api/dns.html#error-codes) whe {@link LookupController} is allowed to use expired cache and allow to set maximum expiration time of cache.
+ * This is default {@link FailoverStrategy}. It allows user to choose [error codes](https://nodejs.org/api/dns.html#error-codes) when {@link LookupController} should cache an error ans choose the TTL for that cache. It also give an ability to choose [error codes](https://nodejs.org/api/dns.html#error-codes) when {@link LookupController} is allowed to use expired cache and allow to set maximum expiration time of cache.
  *
  * @group FailoverStrategy
  * @example
@@ -62,11 +62,25 @@ export interface UniversalFailoverStrategyOptions {
  * const lookupController = new LookupController({ failoverStrategy });
  */
 export class UniversalFailoverStrategy implements FailoverStrategy {
-  protected cacheErrorCodes: string[];
-  protected cacheErrorTtlMs: number;
-  protected cacheMaxExpirationMs: number;
-  protected useExpiredCacheOnErrorCodes: string[];
+  protected readonly cacheErrorCodes: string[];
+  protected readonly cacheErrorTtlMs: number;
+  protected readonly cacheMaxExpirationMs: number;
+  protected readonly useExpiredCacheOnErrorCodes: string[];
 
+  /**
+   * Creates universal failover strategy.
+   *
+   * @example
+   * import { UniversalFailoverStrategy } from 'super-dns-lookup';
+   *
+   * const zeroTolerance = new UniversalFailoverStrategy({
+   *   // never cache errors, next lookup request will end up to {@link ResolverService} again
+   *   cacheErrorCodes: [],
+   *   // never use expired cache, user will get all failed {@link ResolverService} requests
+   *   useExpiredCacheOnErrorCodes: [],
+   * });
+   * @param options Options of strategy.
+   */
   public constructor({
     cacheErrorCodes = [CONNREFUSED, NOTFOUND, REFUSED, SERVFAIL, TIMEOUT],
     cacheErrorTtlMs = 1000,

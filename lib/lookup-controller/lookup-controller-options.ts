@@ -1,11 +1,11 @@
-import { CacheService } from '../cache-service';
-import { ChoiceStrategy } from '../choice-strategy';
-import { FailoverStrategy } from '../failover-strategy';
-import { HostsFileService } from '../hosts-file-service';
-import { IsIpService } from '../is-ip-service';
-import { PersistentStorageService } from '../persistent-storage-service';
-import { ResolvedAddress, ResolverService } from '../resolver-service';
-import { ThrottlingStrategy } from '../throttling-strategy';
+import { type CacheService } from '../cache-service';
+import { type ChoiceStrategy } from '../choice-strategy';
+import { type FailoverStrategy } from '../failover-strategy';
+import { type HostsFileService } from '../hosts-file-service';
+import { type IsIpService } from '../is-ip-service';
+import { type PersistentStorageService } from '../persistent-storage-service';
+import { type ResolverService } from '../resolver-service';
+import { type ThrottlingStrategy } from '../throttling-strategy';
 
 /**
  * Options of {@link LookupController}
@@ -14,15 +14,15 @@ import { ThrottlingStrategy } from '../throttling-strategy';
  */
 export interface LookupControllerOptions {
   /**
-   * Allows to set custom {@link CacheService} which {@link LookupController} uses to store hostname resolution results and ip address check results.
+   * Allows to set custom {@link CacheService} which {@link LookupController} uses to store hostname resolution results and IP address check results.
    * By default {@link LRUCacheService} will be used.
    *
    * @default {@link LRUCacheService}
    */
-  cacheService?: CacheService<ResolvedAddress[]>;
+  cacheService?: CacheService;
 
   /**
-   * Allows to set custom {@link ChoiceStrategy} which {@link LookupController} uses to choose the only one ip of a list.
+   * Allows to set custom {@link ChoiceStrategy} which {@link LookupController} uses to choose the only one IP address of a list.
    * By default {@link RoundRobinChoiceStrategy} will be used.
    *
    * @default {@link RoundRobinChoiceStrategy}
@@ -50,8 +50,8 @@ export interface LookupControllerOptions {
   hostsFileService?: HostsFileService;
 
   /**
-   * Allows to use custom {@link IsIpService} which helps {@link LookupController} to know whether given string an ip address or not.
-   * It also identify ip address family: IPv4 or IPv6.
+   * Allows to use custom {@link IsIpService} which helps {@link LookupController} to know whether given string an IP address or not.
+   * It also identify IP address family: IPv4 or IPv6.
    * By default {@link NodeIsIpService} used.
    *
    * @default {@link NodeIsIpService}
@@ -67,7 +67,7 @@ export interface LookupControllerOptions {
   persistentStorageService?: PersistentStorageService | null;
 
   /**
-   * Allows to use custom {@link ResolverService} which {@link LookupController} uses to ask a remote resolver to resolve given hostname to ip address of different families IPv4 or IPv4.
+   * Allows to use custom {@link ResolverService} which {@link LookupController} uses to ask a remote resolver to resolve given hostname to IP address of different families IPv4 or IPv4.
    * By default {@link NodeResolverService} will be used.
    *
    * @default {@link NodeResolverService}

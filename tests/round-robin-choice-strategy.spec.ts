@@ -1,6 +1,6 @@
 import { equal, ok } from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { RoundRobinChoiceStrategy } from './round-robin-choice-strategy';
+import { RoundRobinChoiceStrategy } from '../';
 
 describe('RoundRobinChoiceStrategy', () => {
   describe('#chooseOne', () => {

@@ -18,7 +18,7 @@
  * export class PersistentStorageService<Data> implements ChoiceStrategy {
  *   public read() {
  *     if (somethingBad) {
- *       throw new SuperDnsLookupError();
+ *       throw new SomethingBadError();
  *     }
  *   }
  *   public write(data: Data): Promise<void>;

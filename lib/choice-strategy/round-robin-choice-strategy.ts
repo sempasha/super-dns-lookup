@@ -1,3 +1,4 @@
+import { type ChoiceStrategy } from './choice-strategy';
 import { EmptyArrayError } from './empty-array-error';
 
 /**
@@ -10,8 +11,8 @@ import { EmptyArrayError } from './empty-array-error';
  * const choiceStrategy = new RoundRobinChoiceStrategy();
  * const lookupController = new LookupController({ choiceStrategy });
  */
-export class RoundRobinChoiceStrategy {
-  protected choices = new WeakMap<unknown[], { index: number }>();
+export class RoundRobinChoiceStrategy implements ChoiceStrategy {
+  protected readonly choices = new WeakMap<unknown[], { index: number }>();
 
   /**
    * Returns first array element when called first time with specified array.

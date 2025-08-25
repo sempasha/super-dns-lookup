@@ -3,7 +3,7 @@
  *
  * @group FailoverStrategy
  * @example
- * import { FailoverStrategy } from 'super-dns-lookup';
+ * import { type FailoverStrategy } from 'super-dns-lookup';
  *
  * export class NoFailoverStrategy implements FailoverStrategy {
  *   public cacheResolverFailure() {

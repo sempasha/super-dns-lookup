@@ -1,23 +1,23 @@
 # ⚡ Super dns.lookup
 
-NodeJS [dns.lookup][docs-dns-lookup] compatible function without threads pool usage, with customizable cache, resolver, fallback strategies and hosts file support.
+NodeJS built-in [dns.lookup][docs-dns-lookup] compatible function without threads pool usage, with customizable cache, resolver, hosts file support, error handling strategies, and more.
 
 ## 💡 Motivation
 
-NodeJS built-in [dns][docs-dns] module has [dns.lookup][docs-dns-lookup] function to resolve domain names into IP addresses. This built-in function appears to be default address resolution method for most network related modules of NodeJS. It implicitly used every time:
+NodeJS built-in [dns][docs-dns] module has [dns.lookup][docs-dns-lookup] function to resolve domain names into IP addresses. This built-in function appears to be default address resolution method for most network related modules of NodeJS. It implicitly used every time you:
 
-- you make HTTP(S) request with [http.request][docs-http-request];
-- or establish new connection with [net.Socket#connect][docs-net-socket-connect];
-- or send data over UDP with [dgram.Socket#send][docs-dgram-socket-send].
+- Make HTTP(S) request with [http.request][docs-http-request];
+- Establish new connection with [net.Socket#connect][docs-net-socket-connect];
+- Send data over UDP with [dgram.Socket#send][docs-dgram-socket-send].
 
-Function [dns.lookup][docs-dns-lookup] seems to be asynchronous and non blocking. But according to [implementation considerations][docs-dns-lookup-implementation], [dns.lookup][docs-dns-lookup] calls synchronous [getaddrinfo][docs-getaddrinfo], which performs via worker threads pool and default pool size is 4 threads.
+The [dns.lookup][docs-dns-lookup] function seems to be asynchronous and non blocking. However, according to [implementation considerations][docs-dns-lookup-implementation], [dns.lookup][docs-dns-lookup] calls synchronous [getaddrinfo][docs-getaddrinfo], which operates via worker threads pool and by default pool has 4 threads only.
 
 Threads pool turns in bottleneck when becomes busy by:
 
-- slow DNS queries, e.g. when a DNS server is overloaded or an authoritative server issues;
-- slow crypto, fs or zlib calls.
+- Slow DNS queries, e.g. when a DNS server is overloaded or an authoritative server issues;
+- Slow crypto, fs or zlib calls.
 
-Please, consider reading of [Don't Block the Event Loop (or the Worker Pool)][docs-block-working-pool].
+Please, consider reading [Don't Block the Event Loop (or the Worker Pool)][docs-block-working-pool].
 
 💡 The idea of this library is implement [dns.lookup][docs-dns-lookup] compatible function which does not reply on threads pool, and it is based on [dns.resolve4][docs-dns-resolve4] and [dns.resolve6][docs-dns-resolve6] functions. It is exactly what NodeJS documentation recommends to do.
 
@@ -174,7 +174,7 @@ class ResolverService {
 }
 
 class ThrottlingStrategy {
-  +throttleResolve(resolveFunction) throttledResolveFunction
+  +throttle(resolveFunction) throttledResolveFunction
 }
 
 class LookupController {
@@ -193,13 +193,13 @@ class LookupController {
   +teardown()
 }
 
-LookupController --> CacheService : store is ip check results<br />and resolved addresses
+LookupController --> CacheService : store "is IP" check results<br />and resolved addresses
 LookupController --> ChoiceStrategy : choose single element<br />of list of elements
 LookupController --> FailoverStrategy : choose behavior<br />to survive failures
 LookupController --> HostsFileService : resolve hostname<br />with hosts file data<br />and watch for file changes
-LookupController --> IsIpService : check whether hostname<br />is an ip address or not
+LookupController --> IsIpService : check whether hostname<br />is an IP address or not
 LookupController --> PersistentStorageService : save and load<br />cache initial data
-LookupController --> ResolverService : resolve hostname<br />to ip addresses
+LookupController --> ResolverService : resolve hostname<br />to IP addresses
 LookupController --> ThrottlingStrategy : limit the number<br />of concurrent<br />resolve requests
 ```
 
@@ -216,7 +216,7 @@ LookupController --> ThrottlingStrategy : limit the number<br />of concurrent<br
 | **Built-in cache** | `LookupController` uses the [lru-cache][package-lru-cache] module to implement its built-in `CacheService`. Memory capacity is limited to store 1000 resolved IP addresses. This limit is adjustable, allowing users to customize the caching behavior to suit their specific requirements. To adjust cache size, please use `cacheService` option of `LookupController`. |
 | **Cache size** | Default `CacheService` implementation, based on [lru-cache][package-lru-cache], has a limit of 1000 IP address records stored in memory, but users can adjust the cache size to store more or fewer IP addresses, set a memory limit by specifying kilobytes or megabytes or even implement their own `CacheService` to take responsibility for limiting storage size on their own. |
 | **Records TTL** | `LookupController` respects DNS record's TTL, and when saving resolved records using `CacheService`, it stores not only the IP address but also the record's TTL, ensuring that cached records are not expired by checking the TTL before using them, and updating expired records with a new query. |
-| **Resolve throttling** | When the `LookupController` receives a lookup request for a hostname that needs resolution—either because it is not found in the `CacheService` or its TTL has expired—it first creates throttled versions of `ResolverService#resolve4` or `ResolverService#resolve6` using `ThrottlingStrategy#throttleResolve`. The controller then uses these throttled functions to perform the hostname resolution request. The throttled resolve function is discarded once all promises it has returned are either resolved or rejected. If the controller receives a new lookup request for the same hostname while the throttled function still has pending promises, it continues to use this function for hostname resolution. This behavior limits the number of concurrent `ResolverService` requests and provides a buffer against timeout errors, as the throttled resolve function will initiate new concurrent requests at specified intervals. The `ThrottlingStrategy` allows users to configure this interval. |
+| **Resolve throttling** | When the `LookupController` receives a lookup request for a hostname that needs resolution — either because it is not found in the `CacheService` or its TTL has expired — it first creates throttled versions of `ResolverService#resolve4` or `ResolverService#resolve6` using `ThrottlingStrategy#throttle`. The controller then uses these throttled functions to perform the hostname resolution request. The throttled resolve function is discarded once all promises it has returned are either resolved or rejected. If the controller receives a new lookup request for the same hostname while the throttled function still has pending promises, it continues to use this function for hostname resolution. This behavior limits the number of concurrent `ResolverService` requests and provides a buffer against timeout errors, as the throttled resolve function will initiate new concurrent requests at specified intervals. The `ThrottlingStrategy` allows users to configure this interval. |
 | **Resolve round robin** | When `LookupController#lookup` is asked for a single IP address and `ResolverService#resolve4` or `ResolverService#resolve6` returns multiple IP addresses, the `LookupController` uses `ChoiceStrategy` have to choose one of addresses. Default implementation of `ChoiceStrategy` implements round-robin strategy. It will return the first IP address in the list on the initial request. On subsequent requests, it will return the next address in the list, cycling through the list until it reaches the end. At that point, it will start again from the first item in the list. User is able to set them own choice strategy using `LookupController` option `choiceStrategy`. |
 | **Expired cache fallback** | When `LookupController` is unable to resolve a hostname due to `ResolverService` errors and the `CacheService` has an expired IP address list (record TTL exceeded), the expired IP address list may be used to build a response. To decide use expired record for reply or not is controlled by `FallbackStrategy` Decision about of use expired record for This fallback mechanism is applicable by default only for a limited number of [error codes][docs-dns-errors], such as `dns.CONNREFUSED`, `dns.NOTFOUND`, `dns.REFUSED`, `dns.SERVFAIL`, and `dns.TIMEOUT`. Users may disable or modify this behavior by tuning `FailoverStrategy#useExpiredCache` method. |
 | **Cache failures** | When `LookupController` encounters an error from `ResolverService`, it will reject the lookup query with that error. Additionally, the controller will cache the error using `CacheService`. The next time a lookup request for the same hostname is received, the controller will use the error stored in `CacheService`. This behavior helps to avoid flooding the DNS resolver and is applicable for certain [error codes][docs-dns-errors], such as `dns.CONNREFUSED`, `dns.NOTFOUND`, `dns.REFUSED`, `dns.SERVFAIL`, and `dns.TIMEOUT`. Users may disable or modify this behavior by tuning `FailoverStrategy#cacheResolverFailure` method. |
@@ -226,11 +226,11 @@ LookupController --> ThrottlingStrategy : limit the number<br />of concurrent<br
 
 <!--- links -->
 
-[docs-block-working-pool]: https://nodejs.org/en/learn/asynchronous-work/dont-block-the-event-loop#what-code-runs-on-the-worker-pool '🐢 NodeJS blog: Don\'t Block the Event Loop (or the Worker Pool)'
+[docs-block-working-pool]: https://nodejs.org/en/learn/asynchronous-work/dont-block-the-event-loop#what-code-runs-on-the-worker-pool '🐢 NodeJS\ blog: Don\'t Block the Event Loop (or the Worker Pool)'
 [docs-conditional-exports]: https://nodejs.org/api/packages.html#conditional-exports '📦 Conditional exports'
-[docs-dgram-create-socket]: https://nodejs.org/api/dgram.html#dgramcreatesocketoptions-callback '🐢 NodeJS dgram.createSocket'
-[docs-dgram-socket-send]: https://nodejs.org/api/dgram.html#socketsendmsg-offset-length-port-address-callback '🐢 NodeJS dgram.Socket#send'
-[docs-dns]: https://nodejs.org/api/dns.html '🐢 NodeJS dns module'
+[docs-dgram-create-socket]: https://nodejs.org/api/dgram.html#dgramcreatesocketoptions-callback '🐢 NodeJS built-in dgram.createSocket'
+[docs-dgram-socket-send]: https://nodejs.org/api/dgram.html#socketsendmsg-offset-length-port-address-callback '🐢 NodeJS built-in dgram.Socket#send'
+[docs-dns]: https://nodejs.org/api/dns.html '🐢 NodeJS built-in dns module'
 [docs-dns-errors]: https://nodejs.org/api/dns.html#error-codes '💥 NodeJS dns errors'
 [docs-dns-getdefaultresultorder]: https://nodejs.org/docs/latest/api/dns.html#dnsgetdefaultresultorder '🐢 NodeJS dns.getDefaultResultOrder'
 [docs-dns-lookup]: https://nodejs.org/api/dns.html#dnslookuphostname-options-callback '🐢 NodeJS dns.lookup'

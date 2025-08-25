@@ -1,21 +1,38 @@
 {
   "name": "super-dns-lookup",
   "version": "0.0.0",
-  "description": "NodeJS dns.lookup compatible function without threads pool usage, with customizable cache, resolver, fallback strategies and hosts file support",
+  "description": "NodeJS built-in dns.lookup compatible function without threads pool usage, with customizable cache, resolver, fallback strategies and hosts file support",
   "files": [
-    "lib/**/*.{d.ts,js}",
-    "*.{d.ts,js}"
+    "lib/**/*.{d.ts,js,js.map}",
+    "*.{d.ts,js,js.map}"
   ],
   "exports": {
     "module-sync": "./index.js",
     "types": "./index.d.ts"
   },
+  "engines": {
+    "node": ">=18"
+  },
+  "engineStrict": true,
   "scripts": {
-    "clean": "npx rimraf --glob '{lib,test}/**/*.{d.ts,js}' '*.{d.ts,js}'",
-    "build": "tsc --project tsconfig.build.json",
-    "prepack": "npm run build",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "prepare": "husky install"
+    "clean": "npm run clean:docs && npm run clean:ts",
+    "clean:docs": "rimraf docs/",
+    "clean:ts": "rimraf --glob 'lib/**/*.{d.ts,js,js.map}' '*.{d.ts,js,js.map}'",
+    "build": "npm run build:docs && npm run build:ts",
+    "build:docs": "typedoc",
+    "build:ts": "tsc --project tsconfig.build.json",
+    "format": "prettier --write 'lib/**/*.ts' '*.{md,ts}'",
+    "prebuild:docs": "npm run clean:docs",
+    "prebuild:ts": "npm run clean:ts",
+    "prepack": "npm run build:ts",
+    "prepare": "husky install",
+    "test": "npm run test:build && npm run test:code && npm run test:format",
+    "test:build": "npm run build; code=$?; npm run clean; exit $code",
+    "test:code": "node --import tsx ./test.ts",
+    "test:code-only": "node --import tsx --test-only ./test.ts",
+    "test:code-only-watch": "node --import tsx --test-only --watch ./test.ts",
+    "test:code-watch": "node --import tsx --watch ./test.ts",
+    "test:format": "prettier --check 'lib/**/*.ts' '*.{md,ts}'"
   },
   "repository": {
     "type": "git",
@@ -37,15 +54,26 @@
   },
   "homepage": "https://github.com/sempasha/super-dns-lookup",
   "dependencies": {
-    "rimraf": "^6.0.1"
+    "lodash.throttle": "^4.1.1",
+    "lru-cache": "^11.1.0",
+    "type-fest": "^4.41.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
+    "@types/dns-packet": "^5.6.5",
     "@types/node": "^24.1.0",
+    "@types/lodash.throttle": "^4.1.9",
+    "dns-packet": "^5.6.1",
+    "glob": "^11.0.3",
     "husky": "^9.1.7",
     "lint-staged": "^16.1.2",
     "prettier": "^3.6.2",
+    "rimraf": "^6.0.1",
+    "tmp-promise": "^3.0.3",
+    "tsx": "^4.20.4",
+    "typedoc": "^0.28.10",
+    "typedoc-plugin-markdown": "^4.8.1",
     "typescript": "^5.8.3"
   },
   "lint-staged": {

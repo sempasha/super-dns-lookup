@@ -1,5 +1,5 @@
 import { isIPv4, isIPv6 } from 'node:net';
-import { IsIpService } from './is-ip-service';
+import { type IsIpService } from './is-ip-service';
 
 /**
  * Implementation of IsIpService using NodeJS [dns.isIPv4](https://nodejs.org/docs/latest/api/net.html#netisipv4input) and [net.isIPv6](https://nodejs.org/docs/latest/api/net.html#netisipv6input) functions.
@@ -12,7 +12,7 @@ import { IsIpService } from './is-ip-service';
 export class NodeIsIpService implements IsIpService {
   /**
    * Tells whether provided string is IPv4 address or not.
-   * Behaves the same way NodeJS's [net.isIPv4](https://nodejs.org/docs/latest/api/net.html#netisipv4input) does.
+   * Behaves the same way NodeJS built-in [net.isIPv4](https://nodejs.org/docs/latest/api/net.html#netisipv4input) does.
    *
    * @example
    * import { equal } from 'node:assert';
@@ -28,7 +28,7 @@ export class NodeIsIpService implements IsIpService {
 
   /**
    * Tells whether provided string is IPv4 address or not.
-   * Behaves the same way NodeJS's [net.isIPv6](https://nodejs.org/docs/latest/api/net.html#netisipv6input) does.
+   * Behaves the same way NodeJS built-in [net.isIPv6](https://nodejs.org/docs/latest/api/net.html#netisipv6input) does.
    *
    * @example
    * import { equal } from 'node:assert';

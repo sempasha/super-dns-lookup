@@ -1,30 +1,68 @@
-import { LookupResult } from './lookup-result';
+import { type LookupAddress } from './lookup-address';
 
 /**
- * Lookup result handler function.
+ * Lookup result handler function, which ready to handle lookup of single address or address list.
  *
  * @group LookupController
  * @example
- * import { LookupCallback, LookupController } from 'super-dns-lookup';
+ * import { type LookupCallback } from 'super-dns-lookup';
  *
- * export function printExampleComAddress(controller: LookupController) {
- *   const handleResult: LookupCallback<false> = (error, address) => {
- *     if (error) {
- *       console.error(error);
- *     } else {
- *       console.info(address);
+ * const handleLookup: LookupCallback = (error, addressOrAddresses, family) => {
+ *   if (error) {
+ *     console.error(error);
+ *   } else if (typeof addressOrAddresses === 'string') {
+ *     console.log(`found ${family === 6 ? 'IPv6' : 'IPv4'} address ${addressOrAddresses}`);
+ *   } else {
+ *     for (const { address, family } of addressOrAddresses) {
+ *       console.log(`found ${family === 6 ? 'IPv6' : 'IPv4'} address ${address}`);
  *     }
  *   }
- *   controller.lookup('example.com', handleResult);
- * }
+ * };
  */
-export interface LookupCallback<All extends boolean | undefined = undefined> {
-  /**
-   * Handles the result of lookup.
-   *
-   * @param error Error which has been occurred during lookup or undefined in case of success.
-   * @param result Lookup result according to lookup options or undefined when error has been occurred.
-   * @returns Nothing.
-   */
-  (error: unknown | undefined, result: LookupResult<All> | undefined): void;
+export interface LookupCallback {
+  (
+    error: unknown | null,
+    addressOrAddresses?: LookupAddress[] | LookupAddress['address'],
+    family?: LookupAddress['family']
+  ): void;
+}
+
+/**
+ * Lookup result handler function, which ready to handle lookup of list of IP addresses.
+ *
+ * @group LookupController
+ * @example
+ * import { type LookupAllCallback } from 'super-dns-lookup';
+ *
+ * const handleLookup: LookupAllCallback = (error, addresses) => {
+ *   if (error) {
+ *     console.error(error);
+ *   } else {
+ *     for (const { address, family } of addresses) {
+ *       console.log(`found ${family === 6 ? 'IPv6' : 'IPv4'} address ${address}`);
+ *     }
+ *   }
+ * };
+ */
+export interface LookupAllCallback {
+  (error: unknown | null, addresses?: LookupAddress[]): void;
+}
+
+/**
+ * Lookup result handler function, which ready to handle lookup of single IP address.
+ *
+ * @group LookupController
+ * @example
+ * import { type LookupOneCallback } from 'super-dns-lookup';
+ *
+ * const handleLookup: LookupOneCallback = (error, address, family) => {
+ *   if (error) {
+ *     console.error(error);
+ *   } else {
+ *     console.log(`found ${family === 6 ? 'IPv6' : 'IPv4'} address ${addressOrAddresses}`);
+ *   }
+ * };
+ */
+export interface LookupOneCallback {
+  (error: unknown | null, address?: LookupAddress['address'], family?: LookupAddress['family']): void;
 }

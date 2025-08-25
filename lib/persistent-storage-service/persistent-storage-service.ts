@@ -5,7 +5,7 @@
  * @group PersistentStorageService
  * @example
  * import { readFile, writeFile } from 'node:fs/promise';
- * import { PersistentStorageService } from 'super-dns-lookup';
+ * import { type PersistentStorageService } from 'super-dns-lookup';
  *
  * export class PersistentStorageServiceExample<Data extends unknown = unknown> implements PersistentStorageService<Data> {
  *   public constructor(

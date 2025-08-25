@@ -5,8 +5,8 @@
  *
  * @group IsIpService
  * @example
- * import { IsIpService } from 'super-and-lookup';
  * import ipRegex from 'ip-regex';
+ * import { type IsIpService } from 'super-and-lookup';
  *
  * export class IsIpServiceExample implements IsIpService {
  *   public isIPv4(string: string) {
@@ -21,7 +21,7 @@
 export interface IsIpService {
   /**
    * Tells whether provided string is IPv4 address or not.
-   * Behaves the same way NodeJS's [net.isIPv4](https://nodejs.org/docs/latest/api/net.html#netisipv4input) does.
+   * Behaves the same way NodeJS built-in [net.isIPv4](https://nodejs.org/docs/latest/api/net.html#netisipv4input) does.
    *
    * @example
    * import { equal } from 'node:assert';
@@ -37,7 +37,7 @@ export interface IsIpService {
 
   /**
    * Tells whether provided string is IPv4 address or not.
-   * Behaves the same way NodeJS's [net.isIPv6](https://nodejs.org/docs/latest/api/net.html#netisipv6input) does.
+   * Behaves the same way NodeJS built-in [net.isIPv6](https://nodejs.org/docs/latest/api/net.html#netisipv6input) does.
    *
    * @example
    * import { equal } from 'node:assert';

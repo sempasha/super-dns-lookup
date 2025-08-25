@@ -1,12 +1,12 @@
 import { LRUCache } from 'lru-cache';
-import { CacheService } from './cache-service';
+import { type CacheService } from './cache-service';
 
 /**
  * Options for the LRU (Least Recently Used) cache.
  *
  * @group CacheService
  * @example
- * import { LRUCacheService, LRUCacheServiceOptions } from 'super-dns-lookup';
+ * import { LRUCacheService, type LRUCacheServiceOptions } from 'super-dns-lookup';
  *
  * const options: LRUCacheServiceOptions = { maxHostnames: 1000 };
  * const cacheService = new LRUCacheService(options);
@@ -31,13 +31,13 @@ export interface LRUCacheServiceOptions {
  */
 export class LRUCacheService<Value extends unknown = unknown> implements CacheService<Value> {
   /**
-   * LRUCache instance
+   * [LRUCache](https://isaacs.github.io/node-lru-cache/modules/LRUCache.html) instance
    */
-  protected lru: LRUCache<string, any>;
+  protected readonly lru: LRUCache<string, any>;
 
   /**
-   * Creates cache service using {@link LRUCache}.
-   * Set {@link LRUCache} size as option {@link LRUCacheServiceOptions#maxHostnames} said.
+   * Creates cache service using [LRUCache](https://isaacs.github.io/node-lru-cache/modules/LRUCache.html).
+   * Set the [OptionsMaxLimit#max](https://isaacs.github.io/node-lru-cache/interfaces/LRUCache.OptionsMaxLimit.html#max) of LRUCache to the value specified in {@link LRUCacheServiceOptions#maxHostnames} to limit number of records in cache.
    *
    * @example
    * import { LRUCacheService } from 'super-dns-lookup';
@@ -52,7 +52,7 @@ export class LRUCacheService<Value extends unknown = unknown> implements CacheSe
 
   /**
    * Provides iterable object which give an ability to iterate over `[key, value]` pairs stored in cache.
-   * Acts same way as LRUCache#entries.
+   * Acts same way as [LRUCache#entries](https://isaacs.github.io/node-lru-cache/classes/LRUCache.html#entries).
    *
    * @example
    * import { equal } from 'node:assert';
@@ -77,10 +77,10 @@ export class LRUCacheService<Value extends unknown = unknown> implements CacheSe
    * Returns undefined when no value found associated with given key.
    * A value may not be found for one of the following reasons:
    *
-   * 1. It has never been stored with {@link CacheService#set}.
+   * 1. It has never been stored with {@link LRUCacheService#set}.
    * 2. It has been evicted from storage due to lack of space or other reasons. Cache memory management behavior may vary.
    *
-   * Acts same way as LRUCache#get.
+   * Acts same way as [LRUCache#get](https://isaacs.github.io/node-lru-cache/classes/LRUCache.html#get).
    *
    * @example
    * import { strictEqual } from 'node:assert';
@@ -90,7 +90,7 @@ export class LRUCacheService<Value extends unknown = unknown> implements CacheSe
    * cacheService.set('known key', 'known value');
    * strictEqual(cacheService.get('known key'), 'known value');
    * strictEqual(typeof cacheService.get('unknown key'), 'undefined');
-   * @param key The key associated with the value during the {@link CacheService#set} call.
+   * @param key The key associated with the value during the {@link LRUCacheService#set} call.
    * @returns The stored value associated with the given key or `undefined` when nothing found.
    */
   public get(key: string): Value | undefined {
@@ -100,7 +100,9 @@ export class LRUCacheService<Value extends unknown = unknown> implements CacheSe
   /**
    * Stores a value associated with the given key string.
    * Overrides the previously stored value with the new one if the key already has an associated value in the cache.
-   * Acts same way as LRUCache#set.
+   * Evicts previously stored values when number of keys exceeds {@link LRUCacheServiceOptions#maxHostnames}.
+   * Evicts least recently used value as it goes from LRU definition.
+   * This way set method acts same way as [LRUCache#set](https://isaacs.github.io/node-lru-cache/classes/LRUCache.html#set).
    *
    * @example
    * import { strictEqual } from 'node:assert';
