@@ -85,8 +85,8 @@ export interface ResolverService {
   resolve4(hostname: string): Promise<ResolvedAddress[]>;
 
   /**
-   * Resolves hostname to an IPv4 addresses using DNS query.
-   * Provides the IP address and A record TTL for each found record.
+   * Resolves hostname to an IPv6 addresses using DNS query.
+   * Provides the IP address and AAAA record TTL for each found record.
    *
    * @example
    * import { ResolverService } from './resolver-service-example';

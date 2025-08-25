@@ -77,7 +77,7 @@ export class LRUCacheService<Value extends unknown = unknown> implements CacheSe
    * Returns undefined when no value found associated with given key.
    * A value may not be found for one of the following reasons:
    *
-   * 1. It has never been stored with {@link CacheService#set}.
+   * 1. It has never been stored with {@link LRUCacheService#set}.
    * 2. It has been evicted from storage due to lack of space or other reasons. Cache memory management behavior may vary.
    *
    * Acts same way as LRUCache#get.
@@ -90,7 +90,7 @@ export class LRUCacheService<Value extends unknown = unknown> implements CacheSe
    * cacheService.set('known key', 'known value');
    * strictEqual(cacheService.get('known key'), 'known value');
    * strictEqual(typeof cacheService.get('unknown key'), 'undefined');
-   * @param key The key associated with the value during the {@link CacheService#set} call.
+   * @param key The key associated with the value during the {@link LRUCacheService#set} call.
    * @returns The stored value associated with the given key or `undefined` when nothing found.
    */
   public get(key: string): Value | undefined {
@@ -100,7 +100,9 @@ export class LRUCacheService<Value extends unknown = unknown> implements CacheSe
   /**
    * Stores a value associated with the given key string.
    * Overrides the previously stored value with the new one if the key already has an associated value in the cache.
-   * Acts same way as LRUCache#set.
+   * Evicts previously stored values when number of keys exceeds {@link LRUCacheServiceOptions#maxHostnames}.
+   * Evicts least recently used value as it goes from LRU definition.
+   * This way set method acts same way as LRUCache#set.
    *
    * @example
    * import { strictEqual } from 'node:assert';

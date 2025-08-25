@@ -33,9 +33,9 @@ describe('LRUCacheService', () => {
   describe('#entries', () => {
     it('Provides iterable object which give an ability to iterate over `[key, value]` pairs stored in cache.', () => {
       const service = new LRUCacheServiceForTest();
-      service.lru.set('key1', 'value1');
-      service.lru.set('key2', 'value2');
-      service.lru.set('key3', 'value3');
+      service.lru.set('key 1', 'value 1');
+      service.lru.set('key 2', 'value 2');
+      service.lru.set('key 3', 'value 3');
       const iterator = service.entries();
       ok(iterator[Symbol.iterator]);
       const array = Array.from(iterator);
@@ -43,17 +43,17 @@ describe('LRUCacheService', () => {
         // Due to LRUCache implementation, iterator provides access to
         // cache items in revers order, it does not matter for LookupController,
         // so we ignore this factor
-        ['key3', 'value3'],
-        ['key2', 'value2'],
-        ['key1', 'value1']
+        ['key 3', 'value 3'],
+        ['key 2', 'value 2'],
+        ['key 1', 'value 1']
       ]);
     });
 
     it('Acts same way as LRUCache#entries.', () => {
       const service = new LRUCacheServiceForTest();
-      service.lru.set('key1', 'value1');
-      service.lru.set('key2', 'value2');
-      service.lru.set('key3', 'value3');
+      service.lru.set('key 1', 'value 1');
+      service.lru.set('key 2', 'value 2');
+      service.lru.set('key 3', 'value 3');
       deepEqual(Array.from(service.entries()), Array.from(service.lru.entries()));
     });
   });
@@ -101,6 +101,25 @@ describe('LRUCacheService', () => {
       const newValue = { property: 'new value' };
       service.set(key, newValue);
       strictEqual(service.lru.get(key), newValue);
+    });
+
+    it('Evicts previously stored values when number of keys exceeds LRUCacheServiceOptions#maxHostnames.', () => {
+      const service = new LRUCacheServiceForTest({ maxHostnames: 1 });
+      service.set('key 1', 'value 1');
+      strictEqual(service.get('key 1'), 'value 1');
+      service.set('key 2', 'value 2');
+      strictEqual(service.get('key 1'), undefined);
+    });
+
+    it('Evicts least recently used value as it goes from LRU definition.', () => {
+      const service = new LRUCacheServiceForTest({ maxHostnames: 2 });
+      service.set('key 1', 'value 1');
+      service.set('key 2', 'value 2');
+      strictEqual(service.get('key 1'), 'value 1');
+      service.set('key 3', 'value 3');
+      strictEqual(service.get('key 1'), 'value 1');
+      strictEqual(service.get('key 2'), undefined);
+      strictEqual(service.get('key 3'), 'value 3');
     });
 
     it('Acts same way as LRUCache#set.', () => {

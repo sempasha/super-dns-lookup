@@ -33,8 +33,8 @@ export class NodeResolverService implements ResolverService {
   }
 
   /**
-   * Resolves hostname to an IPv4 addresses using DNS query.
-   * Provides the IP address and A record TTL for each found record.
+   * Resolves hostname to an IPv6 addresses using DNS query.
+   * Provides the IP address and AAAA record TTL for each found record.
    * Proxies resolution request to NodeJS built-in [dns.resolve6](https://nodejs.org/docs/latest/api/dns.html#dnspromisesresolve6hostname-options).
    *
    * @example
