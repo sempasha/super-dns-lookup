@@ -89,13 +89,13 @@ describe('UniversalFailoverStrategy', () => {
   });
 
   describe('#useExpiredCache', () => {
-    it('Forbid expired cache usage when error not in {@link UniversalFailoverStrategyOptions#cacheErrorCodes} list.', () => {
+    it('Forbid expired cache usage when error not in UniversalFailoverStrategyOptions#cacheErrorCodes list.', () => {
       const strategy = new UniversalFailoverStrategy({ useExpiredCacheOnErrorCodes: ['cache code'] });
       strictEqual(strategy.useExpiredCache(createError('do not cache this')), false);
       strictEqual(strategy.useExpiredCache(createError('do not cache that')), false);
     });
 
-    it('Allows expired cache usage only on errors from {@link UniversalFailoverStrategyOptions#useExpiredCacheOnErrorCodes} list.', () => {
+    it('Allows expired cache usage only on errors from UniversalFailoverStrategyOptions#useExpiredCacheOnErrorCodes list.', () => {
       const useExpiredCacheOnErrorCodes = ['cache this', 'cache that'];
       const strategy = new UniversalFailoverStrategy({ useExpiredCacheOnErrorCodes });
       for (const code of useExpiredCacheOnErrorCodes) {
@@ -130,7 +130,7 @@ describe('UniversalFailoverStrategy', () => {
       }
     });
 
-    it('Allows to use only cache expired less then {@link UniversalFailoverStrategyOptions#cacheMaxExpirationMs} ago.', () => {
+    it('Allows to use only cache expired less then UniversalFailoverStrategyOptions#cacheMaxExpirationMs ago.', () => {
       const useExpiredCacheOnErrorCodes = ['cache this', 'cache that'];
       const cacheMaxExpirationMs = 5000;
       const strategy = new UniversalFailoverStrategy({ cacheMaxExpirationMs, useExpiredCacheOnErrorCodes });

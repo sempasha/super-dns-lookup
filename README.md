@@ -224,6 +224,15 @@ LookupController --> ThrottlingStrategy : limit the number<br />of concurrent<br
 | **Installment API** | `LookupController` supports installation of `LookupController#lookup` on any [http.Agent][docs-http-agent] and [https.Agent][docs-https-agent] through the `LookupController#install` method. |
 | **Exports CommonJS, ESM, TypeScript** | Here things are dead simple, module uses [conditional exports][docs-conditional-exports] and also exports TypeScript declarations. |
 
+## 👷 Contribution
+
+Development is easy:
+
+- Clone git repository `git clone https://github.com/sempasha/super-dns-lookup.git`;
+- And start development environment `make develop`.
+
+[Makefile](./Makefile) will help you with routine [docker compose](./docker-compose.yaml) tasks, see `make help` for more information.
+
 <!--- links -->
 
 [docs-block-working-pool]: https://nodejs.org/en/learn/asynchronous-work/dont-block-the-event-loop#what-code-runs-on-the-worker-pool '🐢 NodeJS\ blog: Don\'t Block the Event Loop (or the Worker Pool)'

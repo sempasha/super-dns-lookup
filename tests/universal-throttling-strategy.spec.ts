@@ -74,7 +74,7 @@ describe('UniversalThrottlingStrategy', () => {
       }
     });
 
-    it('Never calls original function after throttled function completion (i.e. no trailing call after {@link UniversalThrottlingStrategyOptions#intervalMs}', async () => {
+    it('Never calls original function after throttled function completion (i.e. no trailing call after UniversalThrottlingStrategyOptions#intervalMs', async () => {
       const strategy = new UniversalThrottlingStrategy({ intervalMs: 100 });
       const original = mock.fn(() => undefined);
       const throttled = strategy.throttle(original);

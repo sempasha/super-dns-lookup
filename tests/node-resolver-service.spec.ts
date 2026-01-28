@@ -2,7 +2,7 @@ import { deepEqual, equal } from 'node:assert';
 import dns from 'node:dns/promises';
 import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import { NodeResolverService } from '../';
-import { DNSServer } from './dns-server';
+import { DNSServer } from './util';
 
 describe('NodeResolverService', () => {
   const servers = dns.getServers();

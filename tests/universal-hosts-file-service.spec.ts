@@ -1,4 +1,4 @@
-import { deepEqual, equal, ok, partialDeepStrictEqual, rejects } from 'node:assert';
+import { deepEqual, equal, ok, rejects } from 'node:assert';
 import { appendFile, chmod, rename, unlink } from 'node:fs/promises';
 import os from 'node:os';
 import { afterEach, describe, it, mock } from 'node:test';
@@ -51,13 +51,13 @@ describe('UniversalHostsFileService', () => {
       ]);
     });
 
-    it('Throws {@link HostsFileNotFound} error when hosts file not found.', async () => {
+    it('Throws HostsFileNotFound error when hosts file not found.', async () => {
       const path = '/unknown/hosts/file';
       const service = new UniversalHostsFileService({ path });
       await rejects(service.read(), new HostsFileNotFound(path));
     });
 
-    it('Throws {@link HostsFileNotReadable} error when file reading is not possible (because the lack of permissions for example).', async () => {
+    it('Throws HostsFileNotReadable error when file reading is not possible (because the lack of permissions for example).', async () => {
       const hostsFile = await createTmpFile();
       const service = new UniversalHostsFileService({ path: hostsFile.path });
 
