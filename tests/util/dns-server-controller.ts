@@ -244,9 +244,13 @@ export class DNSServerControllerClient
 }
 
 /**
- * {@link DNSServer} controller should be used to start {@link DNSServer} in dedicated nodejs process,
- * it gives ability to change {@link DNSServer} he
+ * {@link DNSServerController} gives an ability to control {@link DNSServer} remotely by calling control methods via HTTP.
+ * Control methods are:
  *
+ *  - {@link DNSServer#reset};
+ *  - {@link DNSServer#respondAlways};
+ *  - {@link DNSServer#respondOnce};
+ *  - {@link DNSServer#respondTimes}.
  */
 export class DNSServerController extends EventEmitter<{
   error: [unknown];

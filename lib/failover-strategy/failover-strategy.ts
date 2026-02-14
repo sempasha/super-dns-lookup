@@ -33,7 +33,7 @@
 export interface FailoverStrategy {
   /**
    * Tells to {@link LookupController} what to do with {@link ResolverService} errors.
-   * Method should make a decision looking on given resolution `error` and `hostname`.
+   * Method should make a decision looking at the given resolution `error` and `hostname`.
    * Should return `false`, when {@link LookupController} should not cache error.
    * Or should return object with `ttlMs` property when strategy wants {@link LookupController} to cache failure on specified number of milliseconds.
    *
@@ -44,8 +44,8 @@ export interface FailoverStrategy {
   cacheResolverFailure(error: unknown, hostname: string): false | { ttlMs: number };
 
   /**
-   * Tells to {@link LookupController} should is use expired cache in lookup request's reply or not.
-   * Method should make a decision looking on given resolution `error` and `hostname`.
+   * Tells to {@link LookupController} should expired cache be used in the reply on the lookup request or not.
+   * Method should make a decision looking at the given resolution `error` and `hostname`.
    * Should return `false`, when {@link LookupController} not allowed to use expired cache.
    * Or should return an object with `maxExpirationMs` property when strategy wants {@link LookupController} to use expired cache but expired less then `maxExpirationMs` milliseconds ago.
    *
