@@ -1,5 +1,5 @@
-import { SuperDnsLookupError } from '../../error';
-import { HostnameAddressPair } from '../../hosts-file-service';
+import { SuperDnsLookupError } from '../../../error';
+import { HostnameAddressPair } from '../../../hosts-file-service';
 
 export class InvalidHostnameAddressPair extends SuperDnsLookupError {
   public constructor(

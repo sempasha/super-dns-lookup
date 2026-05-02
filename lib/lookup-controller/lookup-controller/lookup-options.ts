@@ -31,7 +31,7 @@ export interface LookupOptions {
    *
    * @default 0
    */
-  family?: LookupAddress['family'] | 'IPv4' | 'IPv6' | undefined;
+  family?: LookupAddress['family'] | 0 | 'IPv4' | 'IPv6' | undefined;
 
   /**
    * One or more supported [getaddrinfo flags](https://nodejs.org/docs/latest/api/dns.html#supported-getaddrinfo-flags).
@@ -39,24 +39,12 @@ export interface LookupOptions {
    *
    * @default 0
    */
-  hints?:
-    | LiteralUnion<
-        | 0 /** (nothing) */
-        | 8 /** V4MAPPED */
-        | 16 /** ALL */
-        | 24 /** V4MAPPED & ALL */
-        | 32 /** ADDRCONFIG */
-        | 40 /** V4MAPPED & ADDRCONFIG */
-        | 48 /** ALL & ADDRCONFIG */
-        | 56 /** V4MAPPED & ALL & ADDRCONFIG */,
-        number
-      >
-    | undefined;
+  hints?: LiteralUnion<0, number> | undefined;
 
   /**
    * When both {@link order} and {@link verbatim} are `undefined`, the order will be defined by [dns.getDefaultResultOrder](https://nodejs.org/docs/latest/api/dns.html#dnsgetdefaultresultorder).
-   * When {@link order} is `undefined` and {@link verbatim} is `true`, the resolved addresses are return unsorted.
-   * When `'verbatim'`, the resolved addresses are return unsorted.
+   * When {@link order} is `undefined` and {@link verbatim} is `true`, the resolved addresses are returned unsorted.
+   * When `'verbatim'`, the resolved addresses are returned unsorted.
    * When `'ipv4first'`, the resolved addresses are sorted by placing IPv4 addresses before IPv6 addresses.
    * When `'ipv6first'`, the resolved addresses are sorted by placing IPv6 addresses before IPv4 addresses.
    *

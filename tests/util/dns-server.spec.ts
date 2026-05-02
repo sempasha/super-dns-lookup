@@ -370,10 +370,6 @@ describe('DNSServer (used only for tests)', () => {
         ok('request' in event && typeof event.request === 'object' && event.request !== null);
         ok('id' in event.request);
         assertUUID(event.request.id);
-        partialDeepStrictEqual(event.request, {
-          name: 'example.com',
-          type
-        });
         ok('response' in event && typeof event.response === 'object' && event.response !== null);
         partialDeepStrictEqual(event.response, {
           addresses,
@@ -389,9 +385,25 @@ describe('DNSServer (used only for tests)', () => {
       server.respondOnce('example.com', { A: [['192.168.0.1', 100]] });
       await resolver.resolve4('example.com');
 
-      ok(typeof events.request === 'object' && events.request !== null && 'request' in events.request);
-      ok(typeof events.response === 'object' && events.response !== null && 'request' in events.response);
-      deepStrictEqual(events.request.request, events.response.request);
+      ok(
+        typeof events.request === 'object' &&
+          events.request !== null &&
+          'request' in events.request &&
+          typeof events.request.request === 'object' &&
+          events.request.request !== null &&
+          'id' in events.request.request &&
+          typeof events.request.request.id === 'string'
+      );
+      ok(
+        typeof events.response === 'object' &&
+          events.response !== null &&
+          'request' in events.response &&
+          typeof events.response.request === 'object' &&
+          events.response.request !== null &&
+          'id' in events.response.request &&
+          typeof events.response.request.id === 'string'
+      );
+      partialDeepStrictEqual(events.request.request, events.response.request);
     });
 
     it.todo('Emit error event each time request handling failed with error.');

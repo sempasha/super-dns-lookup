@@ -1,10 +1,12 @@
+import { type LookupController } from '../lookup-controller';
+
 /**
  * {@link CacheService} is a simple synchronous in-memory storage.
  * {@link LookupController} uses it to store hostname resolution results.
  *
  * @group CacheService
  * @example
- * import { type CacheService, LookupController } from 'super-dns-lookup';
+ * import { type CacheService } from 'super-dns-lookup';
  *
  * export class CacheServiceExample<Value = unknown> implements CacheService<Value> {
  *   protected readonly storage: Record<string, Value> = {};
@@ -17,6 +19,7 @@
  *     this.storage[key] = value;
  *   }
  * }
+ * @param <Value> Value to be stored in the cache.
  */
 export interface CacheService<Value extends unknown = unknown> {
   /**

@@ -20,10 +20,10 @@ export type UniversalThrottlingStrategyOptions = {
  *
  * @group ThrottlingStrategy
  * @example
- * import { LookupController, UniversalThrottlingStrategy } from 'super-dns-lookup';
+ * import { SuperLookupController, UniversalThrottlingStrategy } from 'super-dns-lookup';
  *
  * const throttlingStrategy = new UniversalThrottlingStrategy();
- * const lookupController = new LookupController({ throttlingStrategy });
+ * const lookupController = new SuperLookupController({ throttlingStrategy });
  */
 export class UniversalThrottlingStrategy implements ThrottlingStrategy {
   /**
@@ -35,7 +35,7 @@ export class UniversalThrottlingStrategy implements ThrottlingStrategy {
    * Creates universal throttling strategy.
    *
    * @example
-   * import { LookupController, UniversalThrottlingStrategy } from 'super-dns-lookup';
+   * import { SuperLookupController, UniversalThrottlingStrategy } from 'super-dns-lookup';
    *
    * const shortThrottlingStrategy = new UniversalThrottlingStrategy({ intervalMs: 100 });
    * const longThrottlingStrategy = new UniversalThrottlingStrategy({ intervalMs: 5000 });

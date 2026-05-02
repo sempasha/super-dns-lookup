@@ -43,10 +43,10 @@ export interface UniversalHostsFileServiceOptions {
  *
  * @group HostsFileService
  * @example
- * import { LookupController, UniversalHostsFileService } from 'super-dns-lookup';
+ * import { SuperLookupController, UniversalHostsFileService } from 'super-dns-lookup';
  *
  * const hostsFileService = new UniversalHostsFileService();
- * const lookupController = new LookupController({ hostsFileService });
+ * const lookupController = new SuperLookupController({ hostsFileService });
  */
 export class UniversalHostsFileService extends EventEmitter<{ error: [unknown] }> implements HostsFileService {
   /**

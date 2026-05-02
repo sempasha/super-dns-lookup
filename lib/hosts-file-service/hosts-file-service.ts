@@ -17,7 +17,7 @@ import { type HostnameAddressPair } from './hostname-address-pair';
  * export class HostsFileServiceExample implements HostsFileService {
  *   protected readonly controller = new AbortController();
  *
- *   public constructor(protected path: string) {}
+ *   public constructor(protected readonly path: string) {}
  *
  *   public read() {
  *     const contents = await readFile(this.path, { encoding: 'utf-8' });

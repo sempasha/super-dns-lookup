@@ -18,6 +18,7 @@
 export interface ChoiceStrategy {
   /**
    * Selects the single element of entire list of elements.
+   * Method may and should assume, that each time a selection must be made from a given set, the caller supplies the same array by reference.
    * Throws an {@link EmptyArrayError} when array is empty, {@link LookupController} guarantees that array always have at least one element.
    *
    * @param array An array of elements from which the one must be selected.

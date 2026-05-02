@@ -7,7 +7,7 @@ import { type IsIpService } from './is-ip-service';
  * @group IsIpService
  * @example
  * const isIpService = new NodeIsIpService();
- * const lookupController = new LookupController({ isIpService });
+ * const lookupController = new SuperLookupController({ isIpService });
  */
 export class NodeIsIpService implements IsIpService {
   /**

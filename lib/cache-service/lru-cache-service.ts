@@ -27,7 +27,7 @@ export interface LRUCacheServiceOptions {
  * @group CacheService
  * @example
  * const cacheService = new LRUCacheService({ maxHostnames: 1000 });
- * const lookupController = new LookupController({ cacheService });
+ * const lookupController = new SuperLookupController({ cacheService });
  */
 export class LRUCacheService<Value extends unknown = unknown> implements CacheService<Value> {
   /**

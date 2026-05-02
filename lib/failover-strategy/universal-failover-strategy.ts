@@ -1,5 +1,54 @@
-import { CONNREFUSED, NOTFOUND, REFUSED, SERVFAIL, TIMEOUT } from 'node:dns';
+import {
+  BADFAMILY,
+  BADFLAGS,
+  BADHINTS,
+  BADNAME,
+  BADQUERY,
+  BADRESP,
+  BADSTR,
+  CANCELLED,
+  CONNREFUSED,
+  DESTRUCTION,
+  FORMERR,
+  NODATA,
+  NOMEM,
+  NONAME,
+  NOTFOUND,
+  NOTIMP,
+  NOTINITIALIZED,
+  REFUSED,
+  SERVFAIL,
+  TIMEOUT
+} from 'node:dns';
+import { LiteralUnion } from 'type-fest';
 import { type FailoverStrategy } from './failover-strategy';
+
+/**
+ * This type represents all known DNS error codes combined with very basic error code type (string).
+ */
+export type DNSErrorCode = LiteralUnion<
+  | typeof BADFAMILY
+  | typeof BADFLAGS
+  | typeof BADHINTS
+  | typeof BADNAME
+  | typeof BADQUERY
+  | typeof BADRESP
+  | typeof BADSTR
+  | typeof CANCELLED
+  | typeof CONNREFUSED
+  | typeof DESTRUCTION
+  | typeof FORMERR
+  | typeof NODATA
+  | typeof NOMEM
+  | typeof NONAME
+  | typeof NOTFOUND
+  | typeof NOTIMP
+  | typeof NOTINITIALIZED
+  | typeof REFUSED
+  | typeof SERVFAIL
+  | typeof TIMEOUT,
+  string
+>;
 
 /**
  * @group FailoverStrategy
@@ -22,44 +71,44 @@ import { type FailoverStrategy } from './failover-strategy';
  */
 export interface UniversalFailoverStrategyOptions {
   /**
-   * List of error codes when {@link LookupController} should cache error to reduce pressure on dns resolver service.
+   * List of error codes when {@link LookupController} should cache error to reduce pressure on DNS resolver service.
    *
    * @default [dns.CONNREFUSED, dns.NOTFOUND, dns.REFUSED, dns.SERVFAIL, dns.TIMEOUT]
    */
-  cacheErrorCodes?: string[];
+  cacheErrorCodes?: DNSErrorCode[];
 
   /**
-   * Time (ms) after resolution error has been occurred when {@link LookupController} should  use cached resolution error.
+   * Time (ms) after resolution error has occurred when {@link LookupController} should use cached resolution error.
    *
    * @default 1000
    */
   cacheErrorTtlMs?: number;
 
   /**
-   * Maximum cache expiration time (ms) when {@link LookupController} is allowed to use expired cache in reply of lookup request.
+   * Maximum cache expiration time (ms) when {@link LookupController} is allowed to use expired cache in reply to lookup request.
    *
    * @default 3600_0000
    */
   cacheMaxExpirationMs?: number;
 
   /**
-   * List of error codes when {@link LookupController} is allowed to use expired cache in reply of lookup request.
+   * List of error codes when {@link LookupController} is allowed to use expired cache in reply to lookup request.
    *
    * @default [dns.CONNREFUSED,dns.NOTFOUND,dns.REFUSED,dns.SERVFAIL,dns.TIMEOUT]
    */
-  useExpiredCacheOnErrorCodes?: string[];
+  useExpiredCacheOnErrorCodes?: DNSErrorCode[];
 }
 
 /**
- * This is default {@link FailoverStrategy}. It allows user to choose [error codes](https://nodejs.org/api/dns.html#error-codes) when {@link LookupController} should cache an error ans choose the TTL for that cache. It also give an ability to choose [error codes](https://nodejs.org/api/dns.html#error-codes) when {@link LookupController} is allowed to use expired cache and allow to set maximum expiration time of cache.
+ * This is default {@link FailoverStrategy}. It allows user to choose [error codes](https://nodejs.org/api/dns.html#error-codes) when {@link LookupController} should cache an error and choose the TTL for that cache. It also gives an ability to choose [error codes](https://nodejs.org/api/dns.html#error-codes) when {@link LookupController} is allowed to use expired cache and allows to set maximum expiration time of cache.
  *
  * @group FailoverStrategy
  * @example
  * import { TIMEOUT } from 'node:dns';
- * import { LookupController, UniversalFailoverStrategy } from 'super-dns-lookup';
+ * import { SuperLookupController, UniversalFailoverStrategy } from 'super-dns-lookup';
  *
  * const failoverStrategy = new UniversalFailoverStrategy({ cacheErrorCodes: [TIMEOUT] });
- * const lookupController = new LookupController({ failoverStrategy });
+ * const lookupController = new SuperLookupController({ failoverStrategy });
  */
 export class UniversalFailoverStrategy implements FailoverStrategy {
   protected readonly cacheErrorCodes: string[];
@@ -74,6 +123,13 @@ export class UniversalFailoverStrategy implements FailoverStrategy {
    * import { UniversalFailoverStrategy } from 'super-dns-lookup';
    *
    * const zeroTolerance = new UniversalFailoverStrategy({
+   *   // never cache errors, next lookup request will end up to {@link ResolverService} again
+   *   cacheErrorCodes: [],
+   *   // never use expired cache, user will get all failed {@link ResolverService} requests
+   *   useExpiredCacheOnErrorCodes: [],
+   * });
+   *
+   * const totalAcceptance = new UniversalFailoverStrategy({
    *   // never cache errors, next lookup request will end up to {@link ResolverService} again
    *   cacheErrorCodes: [],
    *   // never use expired cache, user will get all failed {@link ResolverService} requests
@@ -99,6 +155,7 @@ export class UniversalFailoverStrategy implements FailoverStrategy {
    * Tells to cache these errors for {@link UniversalFailoverStrategyOptions#cacheErrorTtlMs} time.
    *
    * @param error Resolution error
+   * @return Tells whether to cache error or not.
    */
   public cacheResolverFailure(error: unknown): false | { ttlMs: number } {
     const code = this.getErrorCode(error);
@@ -111,10 +168,10 @@ export class UniversalFailoverStrategy implements FailoverStrategy {
   /**
    * Forbid expired cache usage when error not in {@link UniversalFailoverStrategyOptions#cacheErrorCodes} list.
    * Allows expired cache usage only on errors from {@link UniversalFailoverStrategyOptions#useExpiredCacheOnErrorCodes} list.
-   * Allows to use only cache expired less then {@link UniversalFailoverStrategyOptions#cacheMaxExpirationMs} ago.
+   * Allows to use only cache expired less than {@link UniversalFailoverStrategyOptions#cacheMaxExpirationMs} ago.
    *
-   * @param error Resolution error
-   * @returns
+   * @param error Resolution error.
+   * @returns Tells whether use expired cache record.
    */
   public useExpiredCache(error: unknown): false | { maxExpirationMs: number } {
     const code = this.getErrorCode(error);
@@ -124,6 +181,11 @@ export class UniversalFailoverStrategy implements FailoverStrategy {
     return false;
   }
 
+  /**
+   * Extracts error code from error object.
+   * @param error Error
+   * @returns Error code
+   */
   protected getErrorCode(error: unknown): string | undefined {
     if (typeof error === 'object' && error !== null && 'code' in error && typeof error.code === 'string') {
       return error.code;

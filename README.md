@@ -137,6 +137,8 @@ There are at least three alternatives:
 ```mermaid
 classDiagram
 
+direction LR
+
 class CacheService {
   +entries() [key, value][]
   +get(key) value?
@@ -192,24 +194,25 @@ class LookupController {
   +lookup(hostname, options) address | address[]
   +teardown()
 }
+click LookupController href "https://github.com/sempasha/super-dns-lookup/blob/main/docs/interfaces/LookupController.md" "LookupController"
 
-LookupController --> CacheService : store "is IP" check results<br />and resolved addresses
-LookupController --> ChoiceStrategy : choose single element<br />of list of elements
-LookupController --> FailoverStrategy : choose behavior<br />to survive failures
-LookupController --> HostsFileService : resolve hostname<br />with hosts file data<br />and watch for file changes
-LookupController --> IsIpService : check whether hostname<br />is an IP address or not
-LookupController --> PersistentStorageService : save and load<br />cache initial data
 LookupController --> ResolverService : resolve hostname<br />to IP addresses
-LookupController --> ThrottlingStrategy : limit the number<br />of concurrent<br />resolve requests
+LookupController --> CacheService : store addresses<br />resolved ResolverService<br />and other data
+LookupController --> HostsFileService : resolve hostname<br />with hosts file data
+LookupController --> IsIpService : check whether hostname<br />is an IP address or not
+LookupController --> ChoiceStrategy : choose single address<br />of list of addresses
+LookupController --> FailoverStrategy : choose behavior<br />to survive failures
+LookupController --> PersistentStorageService : save and load<br />CacheService initial data
+LookupController --> ThrottlingStrategy : limit the number<br />of concurrent<br />ResolverService requests
 ```
 
 <!-- prettier-ignore -->
 | Feature | How it works |
 | :-- | :-- |
-| **dns.lookup compatible** | `LookupController#lookup` is fully compatible with [dns.lookup][docs-dns-lookup] interface. It accepts all parameters, including the deprecated `verbatim` flag. It also supports `hints` with all documented [here][docs-getaddrinfo-flags] flags of `getaddrinfo`. When parameters `order` and the `verbatim` are not provided, it will use the default order determined by [dns.getDefaultResultOrder][docs-dns-getdefaultresultorder]. When `dns.ADDRCONFIG` flag provided the `LookupController` checks available IP address families using [os.networkInterfaces][docs-os-networkinterfaces] |
+| **dns.lookup compatible** | `LookupController#lookup` is fully compatible with [dns.lookup][docs-dns-lookup] interface. It accepts all parameters, including the deprecated `verbatim` flag. It also supports `hints` with all documented [here][docs-getaddrinfo-flags] flags of `getaddrinfo`. When parameters `order` and the `verbatim` are not provided, it will use the default order determined by [dns.getDefaultResultOrder][docs-dns-getdefaultresultorder]. When `dns.ADDRCONFIG` flag provided the `LookupController` checks available IP address families using [os.networkInterfaces][docs-os-networkinterfaces]. There is also `SuperLookupControllerOptions#libcCompatibilityName` options which corrects error handling behavior of controller. |
 | **IP recognition** | The `LookupController#lookup` method begins by utilizing the `IsIpService` to verify whether the provided hostname is an IP address. If the hostname is confirmed to be an IP address and its family matches the requested `family`, the method returns the identified IP address. To minimize the overhead of repeated IP address checks, the `LookupController` caches the results of these verifications using `CacheService`. Default `IsIpService` implementation relies on Node.js's built-in [net.isIPv4][docs-net-isipv4] and [net.isIPv6][docs-net-isipv6] methods. Additionally, the `LookupController` allows users to configure the `IsIpService` through the `isIpService` constructor option. |
 | **Hosts file support** | When `LookupController#lookup` verifies that the provided hostname is not an IP address, it checks whether the hostname is present in the hosts file. For hostnames found in the hosts file, the controller responds with the IP address specified there. For other hostnames, the controller continues resolving them using `ResolverService`. To obtain a list of hostname/address pairs from the hosts file, `LookupController` uses the `HostsFileService#read` method, which locates the hosts file on disk and reads it to retrieve all mentioned pairs. Since `HostsFileService#read` is asynchronous, `LookupController` calls this method during `LookupController#bootstrap` and every time the hosts file changes. To monitor changes to the hosts file, `LookupController` employs `HostsFileService#watch`, which accepts a handler function that is called whenever the hosts file is modified. To stop monitoring the hosts file changes, `LookupController` calls `HostsFileService#stopWatching` during `LookupController#teardown`. If a user does not want to or is unable to use `LookupController#bootstrap` and `LookupController#teardown`, monitoring the hosts file changes becomes impossible. In this case, the hosts file will only be read during the first call to `LookupController#lookup`, making the initial lookup slightly slower than subsequent ones. Default `HostsFileService` supports hosts file for Linux, MasOS and Windows and `LookupController` allows users to use their own `HostsFileService` implementation through the `hostsFileService` constructor option. |
-| **Configurable resolver** | `LookupController` utilizes `ResolverService` to handle DNS resolution queries. The `ResolverService` interface is compatible with the [dns.Resolver][docs-dns-resolver] interface, allowing users to use [dns.Resolver][docs-dns-resolver] as `ResolverService` if desired. The default implementation of `ResolverService` based on the [resolve4][docs-dns-resolve4] and [resolve6][docs-dns-resolve6] functions from the dns module. To use custom resolver, please use `resolverService` option of `LookupController`. |
+| **Configurable resolver** | `LookupController` utilizes `ResolverService` to handle DNS resolution queries. The `ResolverService` interface is compatible with the [dns.Resolver][docs-dns-resolver] interface, allowing users to use [dns.Resolver][docs-dns-resolver] as `ResolverService` if desired. The default implementation of `ResolverService` based on the [resolve4][docs-dns-resolve4] and [resolve6][docs-dns-resolve6] functions from the DNS module. To use custom resolver, please use `resolverService` option of `LookupController`. |
 | **Built-in resolver without getaddrinfo** | The `LookupController#lookup` method uses `HostsFileService#resolve4`/`resolve6` and `ResolverService#resolve4`/`resolve6` for hostname resolution. The default implementations of `HostsFileService` and `ResolverService` do not use `getaddrinfo`. |
 | **Configurable cache** | `LookupController` utilizes the `CacheService` for two primary purposes: storing the results of `IsIpService` checks to avoid redundant lookups and temporarily storing resolution results to improve performance. The `CacheService` features a straightforward `get` and `set` interface, making it compatible with the standard [Map][docs-mdn-map] object and the [lru-cache][package-lru-cache] module. This flexibility allows users to implement their own custom `CacheService` if desired, providing an additional layer of customization and control, and enabling them to tailor the caching mechanism to their specific needs. To use custom cache, please use `cacheService` option of `LookupController`. |
 | **Persistent cache** | The `LookupController` can optionally utilize a `PersistentStorageService` to preload data into the `CacheService` during the `LookupController#bootstrap` phase and to persist the cache during the `LookupController#teardown` phase for future runs. The `CacheService#entries` method will be used to dump cache data, while the `CacheService#set` method will be used to populate the cache during the preload process. By default, no `PersistentStorageService` is configured, so user must provide their own service using option `persistentStorageService` of `LookupController` to enable persistence. |
@@ -239,8 +242,8 @@ Development is easy:
 [docs-conditional-exports]: https://nodejs.org/api/packages.html#conditional-exports '📦 Conditional exports'
 [docs-dgram-create-socket]: https://nodejs.org/api/dgram.html#dgramcreatesocketoptions-callback '🐢 NodeJS built-in dgram.createSocket'
 [docs-dgram-socket-send]: https://nodejs.org/api/dgram.html#socketsendmsg-offset-length-port-address-callback '🐢 NodeJS built-in dgram.Socket#send'
-[docs-dns]: https://nodejs.org/api/dns.html '🐢 NodeJS built-in dns module'
-[docs-dns-errors]: https://nodejs.org/api/dns.html#error-codes '💥 NodeJS dns errors'
+[docs-dns]: https://nodejs.org/api/dns.html '🐢 NodeJS built-in DNS module'
+[docs-dns-errors]: https://nodejs.org/api/dns.html#error-codes '💥 NodeJS DNS errors'
 [docs-dns-getdefaultresultorder]: https://nodejs.org/docs/latest/api/dns.html#dnsgetdefaultresultorder '🐢 NodeJS dns.getDefaultResultOrder'
 [docs-dns-lookup]: https://nodejs.org/api/dns.html#dnslookuphostname-options-callback '🐢 NodeJS dns.lookup'
 [docs-dns-lookup-implementation]: https://nodejs.org/api/dns.html#dnslookup '🐢 NodeJS dns.lookup implementation considerations'

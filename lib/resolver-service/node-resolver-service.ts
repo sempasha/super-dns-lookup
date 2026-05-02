@@ -8,10 +8,10 @@ import { type ResolverService } from './resolver-service';
  *
  * @group ResolverService
  * @example
- * import { LookupController, NodeResolverService } from 'super-dns-lookup';
+ * import { NodeResolverService, SuperLookupController } from 'super-dns-lookup';
  *
  * const resolverService = new NodeResolverService();
- * const lookupController = new LookupController({ resolverService });
+ * const lookupController = new SuperLookupController({ resolverService });
  */
 export class NodeResolverService implements ResolverService {
   /**

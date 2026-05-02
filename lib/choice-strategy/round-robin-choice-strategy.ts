@@ -6,10 +6,10 @@ import { EmptyArrayError } from './empty-array-error';
  *
  * @group ChoiceStrategy
  * @example
- * import { LookupController, RoundRobinChoiceStrategy } from 'super-dns-lookup';
+ * import { RoundRobinChoiceStrategy, SuperLookupController } from 'super-dns-lookup';
  *
  * const choiceStrategy = new RoundRobinChoiceStrategy();
- * const lookupController = new LookupController({ choiceStrategy });
+ * const lookupController = new SuperLookupController({ choiceStrategy });
  */
 export class RoundRobinChoiceStrategy implements ChoiceStrategy {
   protected readonly choices = new WeakMap<unknown[], { index: number }>();

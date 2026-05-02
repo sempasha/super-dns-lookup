@@ -1,7 +1,7 @@
 /**
  * Basic (abstract) error class.
- * Has a goal - to be a basic error class for any kind of error library components throw.
- * Also has a goal to be basic class for any kind or error thrown by user implemented service or strategy used during lookup.
+ * It is meant to be a basic error class for any kind of error library components throw.
+ * It also meant to be a basic class for any kind of error thrown by user-implemented services or strategies used during lookup.
  *
  * @group Errors
  * @example

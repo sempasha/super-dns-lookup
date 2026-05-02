@@ -3,9 +3,12 @@ x-node: &node
     context: ./
     dockerfile: Dockerfile
     tags:
-      - ghcr.io/sempasha/super-dns-lookup:node-22-1.0.0
-  image: ghcr.io/sempasha/super-dns-lookup:node-22-1.0.0
+      - ghcr.io/sempasha/super-dns-lookup:node-24-1.0.0
+  image: ghcr.io/sempasha/super-dns-lookup:node-24-1.0.0
   user: node
+  sysctls:
+    - net.ipv6.conf.all.disable_ipv6=1
+    - net.ipv6.conf.default.disable_ipv6=1
   volumes:
     - ./:/app
   working_dir: /app
@@ -33,7 +36,7 @@ services:
     <<: *node
     command: node --import tsx tests/bin/dns-server.ts
     environment:
-      DNS_SERVER_FORWARD_REQUEST_FOR_HOSTS: registry.npmjs.com
+      DNS_SERVER_FORWARD_REQUEST_FOR_HOSTS: registry.npmjs.com,registry.npmjs.org
       DNS_SERVER_IP: 0.0.0.0
       DNS_SERVER_PORT: 53
       DNS_SERVER_CONTROLLER_IP: 0.0.0.0

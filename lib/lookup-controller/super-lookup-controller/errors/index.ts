@@ -1,2 +1,2 @@
-export * from './hostname-not-found';
+export * from './lookup-error';
 export * from './invalid-hostname-address-pair';
