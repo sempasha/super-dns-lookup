@@ -382,8 +382,6 @@ describe('SuperLookupController', () => {
     );
   });
 
-  describe('#install', () => {});
-
   describe('#lookup', () => {
     it('Method is hard bound to {@link SuperLookupController} instance.', async () => {
       await dnsServer.respondAlways('example.com', {

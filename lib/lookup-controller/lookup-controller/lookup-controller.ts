@@ -1,6 +1,4 @@
-import { EventEmitter } from 'node:events';
-import { type Agent as HttpAgent } from 'node:http';
-import { type Agent as HttpsAgent } from 'node:https';
+import { type EventEmitter } from 'node:events';
 import { type CacheService } from '../../cache-service';
 import { type ChoiceStrategy } from '../../choice-strategy';
 import { type FailoverStrategy } from '../../failover-strategy';
@@ -104,18 +102,27 @@ export interface LookupController extends EventEmitter<{ error: [unknown] }> {
   teardown(): Promise<void>;
 
   /**
-   * Makes [http.Agent](https://nodejs.org/docs/latest/api/http.html#class-httpagent) or [https.Agent](https://nodejs.org/docs/latest/api/https.html#class-httpsagent) to use {@link LookupController#lookup} to resolve hostname when agent creates new [connection](https://nodejs.org/docs/latest/api/http.html#agentcreateconnectionoptions-callback).
-   *
-   * @param agent [http.Agent](https://nodejs.org/docs/latest/api/http.html#class-httpagent) or [https.Agent](https://nodejs.org/docs/latest/api/https.html#class-httpsagent) where {@link LookupController#lookup} must be installed and used as `lookup` option during [createConnection](https://nodejs.org/docs/latest/api/http.html#agentcreateconnectionoptions-callback) call.
-   */
-  install(agent: HttpAgent | HttpsAgent): void;
-
-  /**
+   * Supports all the options NodeJS built-in [dns.lookup](https://nodejs.org/docs/latest/api/dns.html#dnslookuphostname-options-callback) has, check out {@link LookupOptions}.
+   * Compatible with both [dns.lookup](https://nodejs.org/docs/latest/api/dns.html#dnslookuphostname-options-callback) and [dns/promises.lookup](https://nodejs.org/docs/latest/api/dns.html#dnspromiseslookuphostname-options) resolution methods.
    * Resolution process consists of attempt to resolve hostname via {@link IsIpService}, then via {@link HostsFileService} and finally via {@link ResolverService}.
+   * When the hostname is an IP address and its family in conflict with requested family, throws error ENOTFOUND.
+   * While reading hosts file data, {@link LookupController} should consider {@link HostsFileNotReadable} as empty hosts file without data.
+   * While reading hosts data file for the first time, {@link LookupController} should consider {@link HostsFileNotFound} as empty hosts file without data.
+   * Result the hostname check via {@link IsIpService} will be stored via {@link CacheService} to avoid excessive {@link IsIpService} calls.
    * During resolution via {@link IsIpService}, hostname will tested whether it is IP address or not using {@link IsIpService#isIPv4} and {@link IsIpService#isIPv6} methods, resolution will be completed when these methods shows positive result.
+   * During resolution via {@link HostsFileService}, the hostname will be looked up in hosts file read by {@link HostsFileService#read}, if a matching address(es) is found for the hostname, the lookup will return that address(es).
+   * When {@link LookupController#lookup} has been called before {@link LookupController#bootstrap}, the controller should read host file first.
+   * During resolution via {@link ResolverService}, the hostname will be looked up using {@link ResolverService#resolve4} and {@link ResolverService#resolve6} according to requested family, lookup will return found address(es).
    * Data received from {@link ResolverService} will be saved via {@link CacheService} for future usage.
-   * Calls of {@link ResolverService} will be throttled via {@link ThrottlingStrategy}.
+   * When {@link CacheService} has actual address(es) for the hostname, returns data from cache without calling of {@link ResolverService}.
+   * When {@link CacheService} have both actual and expired address(es), returns actual data from cache and start background refreshment of cache via {@link ResolverService}.
+   * Subsequent calls of {@link ResolverService} for the same hostname will be throttled via {@link ThrottlingStrategy} to reduce requests pressure on resolver.
    * Errors thrown by {@link ResolverService} will be handled via {@link FailoverStrategy}.
+   * When {@link CacheService} has expired cache and {@link FailoverStrategy#useExpiredCache} allow its usage returns expired addresses from cache.
+   * When {@link FailoverStrategy#cacheResolverFailure} instructs to save resolution error, the error will ve saved via {@link CacheService} to reduce requests pressure on resolver.
+   * Gives precedence to the decision of {@link FailoverStrategy#useExpiredCache} to use expired cache rather than rejecting requests with cached resolution errors.
+   * Errors saved via {@link CacheService} should be threated as errors thrown by {@link ResolverService} and handled by {@link FailoverStrategy} without addressing to {@link ResolverService} until they are actual.
+   * When single address lookup requested, makes choice via {@link ChoiceStrategy}.
    * Method is hard bound to {@link LookupController} instance.
    *
    * @field lookup

@@ -91,22 +91,22 @@ There are at least three alternatives:
 <!-- prettier-ignore -->
 | Feature | ⚡ super-dns-lookup | [better-lookup][package-better-lookup] | [cacheable-lookup][package-cacheable-lookup] | [dns-lookup-cache][package-dns-lookup-cache] |
 | :-- | :-- | :-- | :-- | :-- |
-| **dns.lookup compatible**                 | ❔ | ❎ [^1] | ❎ [^2] | ❎ [^3] |
-| **IP recognition**                        | ❔ | ✅      | ❌      | ❌      |
-| **Hosts file support**                    | ❔ | ✅      | ❌      | ❌      |
-| **Configurable resolver**                 | ❔ | ❌      | ✅      | ❌      |
-| **Built-in resolver without getaddrinfo** | ❔ | ✅      | ❎ [^4] | ✅      |
-| **Configurable cache**                    | ❔ | ❌      | ✅      | ❌      |
-| **Persistent cache**                      | ❔ | ❌      | ✅      | ❌      |
-| **Built-in cache**                        | ❔ | ✅      | ✅      | ✅      |
-| **Cache size**                            | ❔ | ❌      | ❌      | ❌      |
-| **Record TTL**                            | ❔ | ❎ [^5] | ✅      | ✅      |
-| **Resolve throttling**                    | ❔ | ❎ [^6] | ❌      | ❌      |
-| **Resolve round robin**                   | ❔ | ✅      | ❌      | ✅      |
-| **Expired cache fallback**                | ❔ | ❌      | ❌      | ❌      |
-| **Cache failures**                        | ❔ | ❌      | ❌      | ❌      |
+| **dns.lookup compatible**                 | ✅ | ❎ [^1] | ❎ [^2] | ❎ [^3] |
+| **IP recognition**                        | ✅ | ✅      | ❌      | ❌      |
+| **Hosts file support**                    | ✅ | ✅      | ❌      | ❌      |
+| **Configurable resolver**                 | ✅ | ❌      | ✅      | ❌      |
+| **Built-in resolver without getaddrinfo** | ✅ | ✅      | ❎ [^4] | ✅      |
+| **Configurable cache**                    | ✅ | ❌      | ✅      | ❌      |
+| **Persistent cache**                      | ✅ | ❌      | ✅      | ❌      |
+| **Built-in cache**                        | ✅ | ✅      | ✅      | ✅      |
+| **Cache size**                            | ✅ | ❌      | ❌      | ❌      |
+| **Record TTL**                            | ✅ | ❎ [^5] | ✅      | ✅      |
+| **Resolve throttling**                    | ✅ | ❎ [^6] | ❌      | ❌      |
+| **Resolve round robin**                   | ✅ | ✅      | ❌      | ✅      |
+| **Expired cache fallback**                | ✅ | ❌      | ❌      | ❌      |
+| **Cache failures**                        | ✅ | ❌      | ❌      | ❌      |
 | **Circuit breaker**                       | ❔ | ❌      | ❌      | ❌      |
-| **Installment API**                       | ❔ | ✅      | ✅      | ❌      |
+| **Installment API**                       | ⌛ | ✅      | ✅      | ❌      |
 | **Exports CommonJS**                      | ❔ | ✅      | ❌      | ✅      |
 | **Exports ESM**                           | ❔ | ✅      | ✅      | ❌      |
 | **Exports TypeScript**                    | ❔ | ✅      | ✅      | ❌      |
@@ -224,7 +224,7 @@ LookupController --> ThrottlingStrategy : limit the number<br />of concurrent<br
 | **Expired cache fallback** | When `LookupController` is unable to resolve a hostname due to `ResolverService` errors and the `CacheService` has an expired IP address list (record TTL exceeded), the expired IP address list may be used to build a response. The decision whether to use an expired record for the reply is controlled by `FallbackStrategy`. `FailoverStrategy#useExpiredCache` makes a decision based on the occurred error and the hostname. By default, the fallback mechanism is applicable only for a limited number of [error codes][docs-dns-errors], such as `dns.CONNREFUSED`, `dns.NOTFOUND`, `dns.REFUSED`, `dns.SERVFAIL`, and `dns.TIMEOUT`. Users may disable or modify this behavior by tuning the default `UniversalFailoverStrategy` or by implementing their own strategy. |
 | **Cache failures** | When `LookupController` encounters an error from `ResolverService`, it will reject the lookup query with that error. Additionally, the controller will cache the error using `CacheService`. The next time a lookup request for the same hostname is received, the controller will use the error stored in `CacheService`. This behavior helps to avoid flooding the DNS resolver and is applicable for certain [error codes][docs-dns-errors], such as `dns.CONNREFUSED`, `dns.NOTFOUND`, `dns.REFUSED`, `dns.SERVFAIL`, and `dns.TIMEOUT`. Users may disable or modify this behavior by tuning `FailoverStrategy#cacheResolverFailure` method. |
 | **Circuit breaker** | `LookupController` and `ResolverService` are compatible with numerous [circuit breaker libraries][packages-circuit-breaker]. It is recommended to use a circuit breaker with `ResolverService` first. However, there may be conflicts between using a circuit breaker and the **cache failures** feature, so be cautious when implementing your own circuit breaker strategy. |
-| **Installment API** | `LookupController` supports installation of `LookupController#lookup` on any [http.Agent][docs-http-agent] and [https.Agent][docs-https-agent] through the `LookupController#install` method. |
+| **Installment API** | Module supports installation of `LookupController#lookup` on any [http.Agent][docs-http-agent] and [https.Agent][docs-https-agent] through the `agentInstall` method. It also supports installation of `LookupController#lookup` for all NodeJS build-in modules through the `globalInstall` method. |
 | **Exports CommonJS, ESM, TypeScript** | Here things are dead simple, module uses [conditional exports][docs-conditional-exports] and also exports TypeScript declarations. |
 
 ## 👷 Contribution
