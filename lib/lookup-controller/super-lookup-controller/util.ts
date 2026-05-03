@@ -188,10 +188,11 @@ export interface FamilyRecordJson extends Pick<FamilyRecord, 'actual'> {}
 
 /**
  * Validates value to be {@link FamilyRecordJson}.
+ * @param family expected family of potential {@link FamilyRecordJson}.
  * @param value Potential {@link FamilyRecordJson}.
  * @returns Verdict whether value implements {@link FamilyRecordJson} interface or not.
  */
-export function isFamilyRecordJson(value: unknown): value is FamilyRecordJson {
+export function isFamilyRecordJson(family: 4 | 6, value: unknown): value is FamilyRecordJson {
   const isAddressRecord = (addressRecord: unknown): addressRecord is AddressRecord => {
     if (typeof addressRecord !== 'object' || addressRecord === null) {
       return false;
@@ -283,10 +284,10 @@ export function isHostnameRecordJson(value: unknown): value is HostnameRecordJso
   if (typeof value !== 'object' || value === null) {
     return false;
   }
-  if ('4' in value && !isFamilyRecordJson(value[4])) {
+  if ('4' in value && !isFamilyRecordJson(4, value[4])) {
     return false;
   }
-  if ('6' in value && !isFamilyRecordJson(value[6])) {
+  if ('6' in value && !isFamilyRecordJson(6, value[6])) {
     return false;
   }
   return true;

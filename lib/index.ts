@@ -8,3 +8,4 @@ export * from './lookup-controller';
 export * from './persistent-storage-service';
 export * from './resolver-service';
 export * from './throttling-strategy';
+export * from './static';

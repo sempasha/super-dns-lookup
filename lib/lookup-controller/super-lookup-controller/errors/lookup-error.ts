@@ -148,7 +148,7 @@ export class LookupError extends SuperDnsLookupError {
 /**
  * {@link LookupError} code which meaning is "system has no network interfaces or presenter network interfaces does not match with requested families".
  */
-export class AddConfigConflict extends SuperDnsLookupError {
+export class AddrConfigConflict extends SuperDnsLookupError {
   public code = 'ENOADDRCONFIG';
   public constructor(
     public options: LookupOptions,
@@ -159,9 +159,6 @@ export class AddConfigConflict extends SuperDnsLookupError {
 }
 
 function getErrorCode(error: unknown): string {
-  if (error instanceof AddConfigConflict) {
-    return 'ENOTFOUND';
-  }
   return typeof error === 'object' && error !== null && 'code' in error && typeof error.code === 'string'
     ? error.code
     : UNCLEAR;

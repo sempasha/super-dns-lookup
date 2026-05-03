@@ -7,7 +7,12 @@ import { networkInterfaces } from 'node:os';
 import { type CacheService, LRUCacheService } from '../../cache-service';
 import { type ChoiceStrategy, RoundRobinChoiceStrategy } from '../../choice-strategy';
 import { type FailoverStrategy, UniversalFailoverStrategy } from '../../failover-strategy';
-import { type HostsFileService, UniversalHostsFileService } from '../../hosts-file-service';
+import {
+  HostnameAddressPair,
+  HostsFileNotReadable,
+  type HostsFileService,
+  UniversalHostsFileService
+} from '../../hosts-file-service';
 import { type IsIpService, NodeIsIpService } from '../../is-ip-service';
 import { type PersistentStorageService } from '../../persistent-storage-service';
 import { NodeResolverService, type ResolverService } from '../../resolver-service';
@@ -22,7 +27,7 @@ import {
   type LookupOneOptions,
   type LookupOptions
 } from '../lookup-controller';
-import { AddConfigConflict, InvalidHostnameAddressPair, LookupError } from './errors';
+import { AddrConfigConflict, InvalidHostnameAddressPair, LookupError } from './errors';
 import {
   type SuperLookupControllerLibcCompatibilityName,
   type SuperLookupControllerOptions
@@ -70,12 +75,16 @@ export class SuperLookupController extends EventEmitter<{ error: [unknown] }> im
   protected readonly failoverStrategy: FailoverStrategy | null;
   protected readonly hostsFileService: HostsFileService | null;
   protected readonly isIpService: IsIpService | null;
+  protected readonly lazyBootstrap: boolean;
+  protected readonly lazyTeardown: false | NodeJS.Signals[];
   protected readonly libcCompatibilityName: SuperLookupControllerLibcCompatibilityName | null;
   protected readonly persistentStorageService: PersistentStorageService | null;
   protected readonly resolverService: ResolverService | null;
   protected readonly throttlingStrategy: ThrottlingStrategy | null;
   protected readonly verbatimOrder: Required<SuperLookupControllerOptions>['verbatimOrder'];
   protected hostsFileReadPromise: Promise<Map<string, ResolveResult>> | null = null;
+  protected bootstrapPromise: Promise<void> | undefined;
+  protected teardownPromise: Promise<void> | undefined;
 
   /**
    * Creates {@link LookupController} with given options.
@@ -94,6 +103,8 @@ export class SuperLookupController extends EventEmitter<{ error: [unknown] }> im
   public constructor({
     cacheService = new LRUCacheService(),
     choiceStrategy = new RoundRobinChoiceStrategy(),
+    lazyBootstrap = false,
+    lazyTeardown = false,
     libcCompatibilityName = null,
     failoverStrategy = new UniversalFailoverStrategy(),
     hostsFileService = new UniversalHostsFileService(),
@@ -109,6 +120,8 @@ export class SuperLookupController extends EventEmitter<{ error: [unknown] }> im
     this.failoverStrategy = failoverStrategy;
     this.hostsFileService = hostsFileService;
     this.isIpService = isIpService;
+    this.lazyBootstrap = lazyBootstrap;
+    this.lazyTeardown = lazyTeardown;
     this.libcCompatibilityName = libcCompatibilityName;
     this.persistentStorageService = persistentStorageService;
     this.resolverService = resolverService;
@@ -120,6 +133,7 @@ export class SuperLookupController extends EventEmitter<{ error: [unknown] }> im
       });
     }
     this.lookup = this.lookup.bind(this);
+    this.teardown = this.teardown.bind(this);
   }
 
   /**
@@ -130,6 +144,7 @@ export class SuperLookupController extends EventEmitter<{ error: [unknown] }> im
    * While watching {@link LookupController} should read hosts file on every hosts file change.
    * While reading hosts file data, {@link LookupController} should consider {@link HostsFileNotFound} as a signal to forget all the data previously loaded from hosts file.
    * Error {@link HostsFileNotReadable} should be considered as a signal to stop reading file and keep previously read data.
+   * Enables process event listeners specified by {@link SuperLookupControllerOptions#lazyTeardown} option which will trigger {@link SuperLookupController#teardown}.
    *
    * @example
    * import { SuperLookupController } from 'super-dns-lookup';
@@ -156,13 +171,23 @@ export class SuperLookupController extends EventEmitter<{ error: [unknown] }> im
    * @returns Promise that bootstrap will complete successfully.
    */
   public async bootstrap() {
-    this.hostsFileService?.watch(() => {
-      this.hostsFileReadPromise = null;
-      this.readHostsFile().catch((error) => {
-        this.emit('error', error);
+    if (this.bootstrapPromise) {
+      return this.bootstrapPromise;
+    }
+    const teardownPromise = this.teardownPromise ?? Promise.resolve();
+    this.teardownPromise = undefined;
+    this.bootstrapPromise = teardownPromise.then(() => {
+      if (this.lazyTeardown) {
+        for (const signal of this.lazyTeardown) {
+          process.once(signal, this.teardown);
+        }
+      }
+      this.hostsFileService?.watch(() => {
+        this.readHostsFile(true);
       });
+      return Promise.all([this.readHostsFile(), this.readPersistentStorage()]).then();
     });
-    await Promise.all([this.readHostsFile(), this.readPersistentStorage()]);
+    return this.bootstrapPromise;
   }
 
   /**
@@ -172,22 +197,34 @@ export class SuperLookupController extends EventEmitter<{ error: [unknown] }> im
    * Method supposed to be called as the very first step of {@link LookupController#bootstrap}.
    * Method supposed to be called on every hosts file update.
    *
+   * @param force Force read file again.
    * @returns Promise of all hostname/address pairs found in hosts file.
    */
-  protected async readHostsFile(): Promise<Map<string, ResolveResult>> {
-    if (!this.hostsFileReadPromise) {
+  protected async readHostsFile(force = false): Promise<Map<string, ResolveResult>> {
+    if (force || !this.hostsFileReadPromise) {
+      const emptyMap = new Map();
+      const lastPromise = this.hostsFileReadPromise ?? Promise.resolve(emptyMap);
       this.hostsFileReadPromise = new Promise((resolve) => {
-        const result = new Map<string, ResolveResult>();
+        lastPromise.then((fallback) => {
+          const result = new Map<string, ResolveResult>();
 
-        const { hostsFileService } = this;
+          const { hostsFileService } = this;
 
-        if (!hostsFileService) {
-          resolve(result);
-          return;
-        }
+          if (!hostsFileService) {
+            resolve(result);
+            return;
+          }
 
-        hostsFileService.read().then(
-          (pairs) => {
+          const handleReject = (error: unknown) => {
+            this.emit('error', error);
+            if (error instanceof HostsFileNotReadable) {
+              resolve(fallback);
+            } else {
+              resolve(emptyMap);
+            }
+          };
+
+          const handleResolve = (pairs: HostnameAddressPair[]) => {
             const isIpService = this.isIpService || { isIPv4, isIPv6 };
 
             for (const pair of pairs) {
@@ -214,12 +251,14 @@ export class SuperLookupController extends EventEmitter<{ error: [unknown] }> im
               }
             }
             resolve(result);
-          },
-          (error) => {
-            this.hostsFileReadPromise = Promise.resolve(new Map());
-            this.emit('error', error);
+          };
+
+          try {
+            hostsFileService.read().then(handleResolve, handleReject);
+          } catch (error) {
+            handleReject(error);
           }
-        );
+        });
       });
     }
     return this.hostsFileReadPromise;
@@ -236,11 +275,21 @@ export class SuperLookupController extends EventEmitter<{ error: [unknown] }> im
     if (cacheService && persistentStorageService) {
       const data = await persistentStorageService.read();
       if (Array.isArray(data)) {
+        const isIpService = this.isIpService || { isIPv4, isIPv6 };
         for (const item of data) {
           if (Array.isArray(item) && item.length >= 2) {
             const [key, value] = item;
             if (typeof key === 'string' && isHostnameRecordJson(value)) {
-              cacheService.set(key, new HostnameRecord(value));
+              const { 4: ipv4, 6: ipv6 } = value;
+              if (ipv4 && ipv4.actual) {
+                ipv4.actual = ipv4.actual.filter(({ address }) => isIpService.isIPv4(address));
+              }
+              if (ipv6 && ipv6.actual) {
+                ipv6.actual = ipv6.actual.filter(({ address }) => isIpService.isIPv6(address));
+              }
+              if ((ipv4?.actual?.length ?? 0) + (ipv6?.actual?.length ?? 0) > 0) {
+                cacheService.set(key, new HostnameRecord(value));
+              }
             }
           }
         }
@@ -249,7 +298,7 @@ export class SuperLookupController extends EventEmitter<{ error: [unknown] }> im
   }
 
   /**
-   * If {@link LookupController#bootstrap} has been called controller will stop watching for hosts file changes by calling {@link HostsFileService#stopWatching}.
+   * If {@link LookupController#bootstrap} has been called, controller will stop watching for hosts file changes by calling {@link HostsFileService#stopWatching}.
    * If persistent storage has been configured with {@link SuperLookupControllerOptions#persistentStorageService}, controller will read entire cache using {@link CacheService#entries}, serialize everything into single data object and will write it out using {@link PersistentStorageService#write}.
    *
    * @example
@@ -277,10 +326,26 @@ export class SuperLookupController extends EventEmitter<{ error: [unknown] }> im
    * @returns Promise that teardown will complete successfully.
    */
   public async teardown() {
-    if (this.hostsFileService) {
-      this.hostsFileService.stopWatching();
+    if (this.teardownPromise) {
+      return this.teardownPromise;
     }
-    await this.writePersistentStorage();
+    const bootstrapPromise = this.bootstrapPromise;
+    if (!bootstrapPromise) {
+      return;
+    }
+    this.bootstrapPromise = undefined;
+    this.teardownPromise = bootstrapPromise.then(() => {
+      if (this.lazyTeardown) {
+        for (const signal of this.lazyTeardown) {
+          process.off(signal, this.teardown);
+        }
+      }
+      if (this.hostsFileService) {
+        this.hostsFileService.stopWatching();
+      }
+      return this.writePersistentStorage();
+    });
+    return this.teardownPromise;
   }
 
   /**
@@ -303,7 +368,7 @@ export class SuperLookupController extends EventEmitter<{ error: [unknown] }> im
    *
    * @param agent [http.Agent](https://nodejs.org/docs/latest/api/http.html#class-httpagent) or [https.Agent](https://nodejs.org/docs/latest/api/https.html#class-httpsagent) where {@link LookupController#lookup} must be installed and used as `lookup` option during [createConnection](https://nodejs.org/docs/latest/api/http.html#agentcreateconnectionoptions-callback) call.
    */
-  public async install(agent: HttpAgent | HttpsAgent) {
+  public install(agent: HttpAgent | HttpsAgent) {
     throw new Error('Method not implemented.');
   }
 
@@ -487,22 +552,9 @@ export class SuperLookupController extends EventEmitter<{ error: [unknown] }> im
       lookupOptions = {};
     }
 
-    let allOptions: AllOptions;
-    try {
-      const { resolve, response } = this.parseLookupOptions(lookupOptions);
-      allOptions = { lookup: lookupOptions, resolve, response, requestTime: Date.now() };
-    } catch (error) {
-      const lookupError = new LookupError(hostname, lookupOptions, error);
-      if (callback) {
-        return callback(lookupError);
-      } else {
-        return Promise.reject(error);
-      }
-    }
-
     // glibc implementation of getaddrinfo tend to preset ENODATA as EAI_AGAIN.
     // musl implementation of getaddrinfo tend to preset ENODATA as ENOTFOUND.
-    const makeLibcCompatibleError = (error: unknown) => {
+    const makeErrorLibcCompatible = <T>(error: T): T => {
       if (error instanceof LookupError) {
         if (error.code === 'ENODATA') {
           switch (this.libcCompatibilityName) {
@@ -513,33 +565,55 @@ export class SuperLookupController extends EventEmitter<{ error: [unknown] }> im
               Object.assign(error, { code: 'ENOTFOUND' });
               break;
           }
+        } else if (error.cause instanceof AddrConfigConflict) {
+          switch (this.libcCompatibilityName) {
+            case 'glibc':
+            case 'musl':
+              Object.assign(error, { code: 'ENOTFOUND' });
+              break;
+          }
         }
       }
+      return error;
     };
 
-    const libcCompatibleErrorPromiseHandler = (error: unknown) => {
-      makeLibcCompatibleError(error);
-      throw error;
-    };
-
-    const libcCompatibleErrorCallbackHandler = (error: unknown) => {
-      makeLibcCompatibleError(error);
-      callback!(error);
-    };
-
-    if (lookupOptions.all) {
-      const promise = this.lookupAll(hostname, allOptions);
+    let allOptions: AllOptions;
+    try {
+      const { resolve, response } = this.parseLookupOptions(lookupOptions);
+      allOptions = { lookup: lookupOptions, resolve, response, requestTime: Date.now() };
+    } catch (error) {
+      const lookupError = makeErrorLibcCompatible(new LookupError(hostname, lookupOptions, error));
       if (callback) {
-        promise.then((result) => callback(null, result), libcCompatibleErrorCallbackHandler);
+        return callback(lookupError);
       } else {
-        return promise.catch(libcCompatibleErrorPromiseHandler);
+        return Promise.reject(lookupError);
+      }
+    }
+
+    const lazyBootstrap = this.lazyBootstrap ? this.bootstrap() : Promise.resolve();
+    if (lookupOptions.all) {
+      const promise = lazyBootstrap.then(() => this.lookupAll(hostname, allOptions));
+      if (callback) {
+        promise.then(
+          (result) => callback(null, result),
+          (error) => callback(makeErrorLibcCompatible(error))
+        );
+      } else {
+        return promise.catch((error) => {
+          throw makeErrorLibcCompatible(error);
+        });
       }
     } else {
-      const promise = this.lookupOne(hostname, allOptions);
+      const promise = lazyBootstrap.then(() => this.lookupOne(hostname, allOptions));
       if (callback) {
-        promise.then(({ address, family }) => callback(null, address, family), libcCompatibleErrorCallbackHandler);
+        promise.then(
+          ({ address, family }) => callback(null, address, family),
+          (error) => callback(makeErrorLibcCompatible(error))
+        );
       } else {
-        return promise.catch(libcCompatibleErrorPromiseHandler);
+        return promise.catch((error) => {
+          throw makeErrorLibcCompatible(error);
+        });
       }
     }
   }
@@ -619,7 +693,7 @@ export class SuperLookupController extends EventEmitter<{ error: [unknown] }> im
           }
         }
         if (resolveFamily.size === 0) {
-          throw new AddConfigConflict(options, availableFamilies);
+          throw new AddrConfigConflict(options, availableFamilies);
         }
       }
       if (resolveFamily.size === 1 && resolveFamily.has(6) && (options.hints & V4MAPPED) === V4MAPPED) {
@@ -810,7 +884,7 @@ export class SuperLookupController extends EventEmitter<{ error: [unknown] }> im
         return resolvedHostnameRecord;
       }
     }
-    throw new LookupError(hostname, options.lookup, 'ENODATA');
+    throw new LookupError(hostname, options.lookup, 'ENOTFOUND');
   }
 
   /**

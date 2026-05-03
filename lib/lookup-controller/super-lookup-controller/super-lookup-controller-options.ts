@@ -71,11 +71,34 @@ export interface SuperLookupControllerOptions {
   isIpService?: IsIpService | null;
 
   /**
+   * Controls whether {@link LookupController#bootstrap} will be called automatically on first {@link LookupController#lookup} request.
+   * When disabled, user should call {@link LookupController#bootstrap} themselves.
+   * When enabled, {@link LookupController#bootstrap} will be called on first {@link LookupController#lookup} and block request handling until bootstrapped.
+   *
+   * @default false
+   */
+  lazyBootstrap?: boolean;
+
+  /**
+   * Control whether {@link LookupController#teardown} will be called automatically on process shutdown.
+   * When disabled, user should call {@link LookupController#teardown} themselves.
+   * When enabled, {@link LookupController#teardown} will be called on specified process signal event.
+   * Recommended choice of signals: SIGINT (Ctrl+C), SIGTERM (common kill).
+   *
+   * @default false
+   */
+  lazyTeardown?:
+    | false
+    | ('SIGABRT' | 'SIGBREAK' | 'SIGHUP' | 'SIGINT' | 'SIGQUIT' | 'SIGSTOP' | 'SIGTERM' | 'SIGUSR1' | 'SIGUSR2')[];
+
+  /**
    * Name of libc library will be used for compatibility with getaddrinfo behaviour.
    * For example different library implementations interpret ENODATA error in different ways:
    *
    * - glibs tends to treat this error as EAI_AGAIN;
    * - while musl tents to treat this error as ENOTFOUND.
+   *
+   * @default undefined
    */
   libcCompatibilityName?: SuperLookupControllerLibcCompatibilityName | null;
 
