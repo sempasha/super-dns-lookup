@@ -1,7 +1,7 @@
 import { ok, strictEqual, equal } from 'node:assert';
 import { describe, it, mock } from 'node:test';
 import { UniversalThrottlingStrategy } from '../';
-import { delay } from './util';
+import { delay } from './lib';
 
 describe('UniversalThrottlingStrategy', () => {
   describe('#throttle', () => {

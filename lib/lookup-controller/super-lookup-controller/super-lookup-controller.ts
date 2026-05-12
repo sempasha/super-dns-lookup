@@ -6,9 +6,9 @@ import { type CacheService, LRUCacheService } from '../../cache-service';
 import { type ChoiceStrategy, RoundRobinChoiceStrategy } from '../../choice-strategy';
 import { type FailoverStrategy, UniversalFailoverStrategy } from '../../failover-strategy';
 import {
-  HostnameAddressPair,
-  HostsFileNotReadable,
+  type HostnameAddressPair,
   type HostsFileService,
+  HostsFileNotReadable,
   UniversalHostsFileService
 } from '../../hosts-file-service';
 import { type IsIpService, NodeIsIpService } from '../../is-ip-service';
@@ -27,10 +27,6 @@ import {
 } from '../lookup-controller';
 import { AddrConfigConflict, InvalidHostnameAddressPair, LookupError } from './errors';
 import {
-  type SuperLookupControllerLibcCompatibilityName,
-  type SuperLookupControllerOptions
-} from './super-lookup-controller-options';
-import {
   type AddressFamily,
   type AddressRecord,
   type AllOptions,
@@ -41,7 +37,11 @@ import {
   type ResponseOptions,
   isHostnameRecordJson,
   mapIPv4toIPv6
-} from './util';
+} from './internal';
+import {
+  type SuperLookupControllerLibcCompatibilityName,
+  type SuperLookupControllerOptions
+} from './super-lookup-controller-options';
 
 /**
  * Lookup controller itself.

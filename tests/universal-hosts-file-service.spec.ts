@@ -4,7 +4,7 @@ import os from 'node:os';
 import { afterEach, describe, it, mock } from 'node:test';
 import { file as createTmpFile, tmpName as createTmpFileName } from 'tmp-promise';
 import { HostsFileNotFound, HostsFileNotReadable, UniversalHostsFileService } from '../';
-import { delay } from './util';
+import { delay } from './lib';
 
 describe('UniversalHostsFileService', () => {
   describe('#constructor', () => {

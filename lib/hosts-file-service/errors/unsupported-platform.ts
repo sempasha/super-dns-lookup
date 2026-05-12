@@ -1,5 +1,5 @@
 import { SuperDnsLookupError } from '../../error';
-import { getDocsUrl } from '../../util';
+import { getDocsUrl } from '../../internal';
 
 /**
  * This error should be thrown when hosts file service can't choose default path of hosts file.

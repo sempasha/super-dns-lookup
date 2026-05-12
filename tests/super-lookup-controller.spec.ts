@@ -3,22 +3,22 @@ import { ADDRCONFIG, ALL, V4MAPPED, lookup } from 'node:dns';
 import { lookup as lookupPromised } from 'node:dns/promises';
 import { createServer as createHttpServer, request as createHttpRequest } from 'node:http';
 import { createServer as createTcpServer, createConnection as createTcpSocket } from 'node:net';
+import { EventEmitter } from 'node:stream';
 import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import { inspect } from 'node:util';
 import { family } from 'detect-libc';
-import { delay, dnsServer } from './util';
 import {
-  CacheService,
-  HostnameAddressPair,
+  type CacheService,
+  type HostnameAddressPair,
   HostsFileNotFound,
   HostsFileNotReadable,
-  HostsFileService,
+  type HostsFileService,
   InvalidHostnameAddressPair,
   LookupError,
-  PersistentStorageService,
+  type PersistentStorageService,
   SuperLookupController
 } from '../';
-import { EventEmitter } from 'node:stream';
+import { delay, dnsServer } from './lib';
 
 describe('SuperLookupController', () => {
   class Cache extends Map implements CacheService {}

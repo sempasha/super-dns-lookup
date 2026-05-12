@@ -1,5 +1,5 @@
 import { env } from 'node:process';
-import { DNSServer, DNSServerController } from '../util';
+import { DNSServer, DNSServerController } from '../lib';
 import { inspect } from 'node:util';
 
 /**
