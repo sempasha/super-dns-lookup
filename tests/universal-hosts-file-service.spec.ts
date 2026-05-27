@@ -38,17 +38,21 @@ describe('UniversalHostsFileService', () => {
       const hostsFile = await createTmpFile();
       const service = new UniversalHostsFileService({ path: hostsFile.path });
 
-      await appendFile(hostsFile.path, `127.0.0.1 localhost${os.EOL}`);
-      await appendFile(hostsFile.path, `::1 localhost${os.EOL}`);
-      await appendFile(hostsFile.path, `23.215.0.136 example.com${os.EOL}`);
-      await appendFile(hostsFile.path, `23.215.0.138 example.com${os.EOL}`);
-      const result = await service.read();
-      deepEqual(result, [
-        ['localhost', '127.0.0.1'],
-        ['localhost', '::1'],
-        ['example.com', '23.215.0.136'],
-        ['example.com', '23.215.0.138']
-      ]);
+      try {
+        await appendFile(hostsFile.path, `127.0.0.1 localhost${os.EOL}`);
+        await appendFile(hostsFile.path, `::1 localhost${os.EOL}`);
+        await appendFile(hostsFile.path, `23.215.0.136 example.com${os.EOL}`);
+        await appendFile(hostsFile.path, `23.215.0.138 example.com${os.EOL}`);
+        const result = await service.read();
+        deepEqual(result, [
+          ['localhost', '127.0.0.1'],
+          ['localhost', '::1'],
+          ['example.com', '23.215.0.136'],
+          ['example.com', '23.215.0.138']
+        ]);
+      } finally {
+        await hostsFile.cleanup();
+      }
     });
 
     it('Throws HostsFileNotFound error when hosts file not found.', async () => {
@@ -65,7 +69,7 @@ describe('UniversalHostsFileService', () => {
         await chmod(hostsFile.path, '0222');
         await rejects(service.read(), new HostsFileNotReadable(hostsFile.path));
       } finally {
-        hostsFile.cleanup();
+        await hostsFile.cleanup();
       }
     });
   });
@@ -100,7 +104,7 @@ describe('UniversalHostsFileService', () => {
         ok(updateHandler.mock.callCount() > 0);
       } finally {
         service.stopWatching();
-        hostsFile.cleanup();
+        await hostsFile.cleanup();
       }
     });
 
@@ -122,7 +126,7 @@ describe('UniversalHostsFileService', () => {
         deepEqual(updateHandler.mock.calls[1]!.arguments, []);
       } finally {
         service.stopWatching();
-        hostsFile.cleanup();
+        await hostsFile.cleanup();
       }
     });
 
@@ -175,7 +179,7 @@ describe('UniversalHostsFileService', () => {
         service.watch(updateHandler);
         equal(updateHandler.mock.callCount(), 0);
 
-        await unlink(hostsFilePath);
+        await rename(hostsFilePath, `${hostsFilePath}.backup`);
         await delay(100);
         equal(updateHandler.mock.callCount(), 1);
 
@@ -185,6 +189,7 @@ describe('UniversalHostsFileService', () => {
       } finally {
         service.stopWatching();
         await unlink(hostsFilePath).catch(() => undefined);
+        await unlink(`${hostsFilePath}.backup`).catch(() => undefined);
       }
     });
 
@@ -202,6 +207,7 @@ describe('UniversalHostsFileService', () => {
         equal(updateHandler.mock.callCount(), 1);
       } finally {
         service.stopWatching();
+        await unlink(hostsFilePath).catch(() => undefined);
       }
     });
 
@@ -243,6 +249,22 @@ describe('UniversalHostsFileService', () => {
         }
       } finally {
         hostsFile.cleanup();
+      }
+    });
+
+    it('Watcher process does not block process from existing.', async () => {
+      const hostsFile = await createTmpFile();
+      const service = new UniversalHostsFileService({ path: hostsFile.path });
+      const getActiveHandles = () => (process as unknown as { _getActiveHandles: () => unknown[] })._getActiveHandles();
+
+      try {
+        const handlesBefore = getActiveHandles();
+        service.watch(() => undefined);
+        const handlesAfter = getActiveHandles();
+        equal(handlesAfter.length, handlesBefore.length);
+      } finally {
+        service.stopWatching();
+        await hostsFile.cleanup();
       }
     });
   });

@@ -84,6 +84,7 @@ export interface HostsFileService extends Pick<EventEmitter<{ error: [unknown] }
    * When new hosts file has appeared instead of renamed one, calls `updateHandler` function and continue watch.
    * When hosts file not exists, calls `updateHandler` when hosts file appears.
    * Emits 'error' event when error occurred in `updateHandler` (supports sync and async `updateHandlers`).
+   * Watcher process does not block process from existing.
    *
    * Method is used by {@link LookupController#bootstrap} to start watching for hosts file changes.
    *
