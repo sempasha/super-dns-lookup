@@ -264,7 +264,7 @@ export class UniversalHostsFileService extends EventEmitter<{ error: [unknown] }
 
   protected startWatchProcess() {
     try {
-      this.watcher = watch(this.path, { persistent: true }, () => {
+      this.watcher = watch(this.path, { persistent: false }, () => {
         this.isFileReadable((readable) => {
           if (!this.isWatchProcessRunning()) {
             return;
@@ -276,19 +276,9 @@ export class UniversalHostsFileService extends EventEmitter<{ error: [unknown] }
           }
         });
       });
-      this.watcher.unref();
     } catch (error) {
-      this.isFileReadable((readable) => {
-        if (this.updateHandler) {
-          if (readable) {
-            this.stopWatchProcess();
-            this.startWatchProcess();
-          } else {
-            this.stopWatchProcess();
-            this.startProbeProcess();
-          }
-        }
-      });
+      this.stopWatchProcess();
+      this.startProbeProcess();
     }
   }
 
@@ -315,7 +305,6 @@ export class UniversalHostsFileService extends EventEmitter<{ error: [unknown] }
       });
     };
     this.probeInterval = setInterval(probe, this.probeIntervalMs);
-    probe();
   }
 
   protected stopProbeProcess() {
