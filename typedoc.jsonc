@@ -1,0 +1,28 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "groupOrder": [
+    "LookupController",
+    "CacheService",
+    "ChoiceStrategy",
+    "Errors",
+    "FailoverStrategy",
+    "HostsFileService",
+    "IsIpService",
+    "PersistentStorageService",
+    "ResolverService",
+    "ThrottlingStrategy"
+  ],
+  "entryPoints": ["./index.ts"],
+  "entryPointStrategy": "expand",
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "navigation": {
+    "includeGroups": true,
+    "compactFolders": true
+  },
+  "out": "./docs",
+  "plugin": ["typedoc-plugin-markdown"],
+  "readme": "none",
+  "sort": ["documents-first", "alphabetical"],
+  "treatWarningsAsErrors": false
+}

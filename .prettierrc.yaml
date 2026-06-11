@@ -1,0 +1,10 @@
+arrowParens: always
+bracketSameLine: true
+bracketSpacing: true
+endOfLine: lf
+printWidth: 120
+singleAttributePerLine: true
+singleQuote: true
+tabWidth: 2
+trailingComma: none
+useTabs: false
